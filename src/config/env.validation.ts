@@ -5,6 +5,7 @@ export const envValidationSchema = Joi.object({
   BUDGET_API_NODE_ENV: Joi.string()
     .valid('development', 'production', 'test', 'staging')
     .default('development'),
+  BUDGET_API_KEY: Joi.string().required(),
   BUDGET_API_JWT_SECRET: Joi.string().required(),
   BUDGET_API_JWT_EXPIRES_IN: Joi.string().default('1h'),
   BUDGET_API_JWT_REFRESH_SECRET: Joi.string().required(),

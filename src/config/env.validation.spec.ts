@@ -4,6 +4,7 @@ describe('envValidationSchema', () => {
   const validEnv = {
     BUDGET_API_PORT: 3000,
     BUDGET_API_NODE_ENV: 'development',
+    BUDGET_API_KEY: 'test_api_key',
     BUDGET_API_JWT_SECRET: 'test_jwt_secret',
     BUDGET_API_JWT_REFRESH_SECRET: 'test_refresh_secret',
     BUDGET_API_REGISTRATION_INVITE_CODE: 'INVITE123',
@@ -14,7 +15,17 @@ describe('envValidationSchema', () => {
     const { error, value } = envValidationSchema.validate(validEnv);
     expect(error).toBeUndefined();
     expect(value.BUDGET_API_PORT).toBe(3000);
+    expect(value.BUDGET_API_KEY).toBe('test_api_key');
     expect(value.BUDGET_API_JWT_SECRET).toBe('test_jwt_secret');
+  });
+
+  it('should fail if BUDGET_API_KEY is missing', () => {
+    const invalidEnv = { ...validEnv };
+    delete (invalidEnv as any).BUDGET_API_KEY;
+
+    const { error } = envValidationSchema.validate(invalidEnv);
+    expect(error).toBeDefined();
+    expect(error?.message).toContain('"BUDGET_API_KEY" is required');
   });
 
   it('should fail if BUDGET_API_MONGO_URI is missing', () => {
@@ -37,6 +48,7 @@ describe('envValidationSchema', () => {
 
   it('should apply defaults for BUDGET_API_PORT and BUDGET_API_NODE_ENV', () => {
     const minimalEnv = {
+      BUDGET_API_KEY: 'test_api_key',
       BUDGET_API_JWT_SECRET: 'test_jwt_secret',
       BUDGET_API_JWT_REFRESH_SECRET: 'test_refresh_secret',
       BUDGET_API_REGISTRATION_INVITE_CODE: 'INVITE123',

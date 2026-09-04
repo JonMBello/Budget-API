@@ -37,6 +37,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       this.logger.error(`Unhandled Exception: ${exception.message}`, exception.stack);
     }
 
+    if (!(response as any).locals) {
+      (response as any).locals = {};
+    }
+    (response as any).locals.errorMessage = message;
+
     response.status(status).json({
       statusCode: status,
       error: errorName,

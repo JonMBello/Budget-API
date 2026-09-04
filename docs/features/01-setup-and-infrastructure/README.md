@@ -14,7 +14,7 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 
 **Criterios de Aceptación:**
 - [x] Proyecto NestJS inicializado con `npm` y TypeScript estricto.
-- [x] Módulo `@nestjs/config` configurado con validación (usando `joi` o `zod`) para variables obligatorias: `BUDGET_API_PORT`, `BUDGET_API_NODE_ENV`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, `BUDGET_API_REGISTRATION_INVITE_CODE`.
+- [x] Módulo `@nestjs/config` configurado con validación (usando `joi` o `zod`) para variables obligatorias: `BUDGET_API_PORT`, `BUDGET_API_NODE_ENV`, `BUDGET_API_KEY`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, `BUDGET_API_REGISTRATION_INVITE_CODE`.
 - [x] Archivos `.env.example` y `.env` documentados con prefijo `BUDGET_API_`.
 - [x] Formateo con ESLint y Prettier verificado.
 
@@ -33,16 +33,18 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 
 ---
 
-### HU-01.3: Prefijo Global, Validaciones y Swagger
+### HU-01.3: Prefijo Global, Validaciones, API Key Guard y Swagger
 > **Como** consumidor de la API o frontend PWA,  
-> **Quiero** acceder a los endpoints bajo el prefijo `/api` y consultar la documentación interactiva en `/api/docs`,  
-> **Para** entender claramente los contratos de datos y verificar los endpoints.
+> **Quiero** acceder a los endpoints bajo el prefijo `/api`, enviar obligatoriamente el header `x-api-key`, y consultar la documentación interactiva en `/api/docs`,  
+> **Para** asegurar las peticiones y entender claramente los contratos de datos y verificar los endpoints.
 
 **Criterios de Aceptación:**
 - [x] Prefijo global `/api` activo en todas las rutas.
-- [x] Swagger montado en `/api/docs` con título "Budget API", descripción, versión y soporte para autenticación Bearer JWT.
+- [x] `ApiKeyGuard` global (`APP_GUARD`) que exige el header `x-api-key: <BUDGET_API_KEY>` en absolutamente todas las peticiones (públicas y privadas).
+- [x] `HttpLoggerMiddleware` global que registra en consola cada petición entrante y su respuesta con status code y duración (`+Xms`).
+- [x] Swagger montado en `/api/docs` con esquemas `api-key` y `JWT-auth`, y persistencia de autorización (`persistAuthorization: true`).
 - [x] `ValidationPipe` global activo con `whitelist: true`, `forbidNonWhitelisted: true` y `transform: true`.
-- [x] Filtro global de excepciones `HttpExceptionFilter` para estandarizar respuestas de error JSON (`statusCode`, `message`, `timestamp`, `path`).
+- [x] Filtro global de excepciones `HttpExceptionFilter` para estandarizar respuestas de error JSON (`statusCode`, `error`, `message`, `timestamp`, `path`) con mensajes de error estrictamente en inglés y respuestas discretas para 401 (`Unauthorized request`).
 
 ---
 
@@ -64,20 +66,23 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
   - Configurar `tsconfig.json` y scripts en `package.json` (`start:dev`, `build`, `test`).
 
 - [x] **TICKET-01.2: ConfigModule y validación de variables de entorno**
-  - Crear `src/config/env.validation.ts` con esquema de validación para `BUDGET_API_PORT`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, etc.
+  - Crear `src/config/env.validation.ts` con esquema de validación para `BUDGET_API_PORT`, `BUDGET_API_KEY`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, etc.
   - Generar `.env.example` con descripciones de cada variable.
 
 - [x] **TICKET-01.3: Módulo de Base de Datos (MongooseModule)**
   - Configurar `MongooseModule.forRootAsync` en `AppModule` consumiendo `ConfigService`.
   - Probar conexión a MongoDB local o remoto.
 
-- [x] **TICKET-01.4: Configuración de Main (`main.ts`) y Filtros Globales**
+- [x] **TICKET-01.4: Configuración de Main (`main.ts`), Filtros y Guards Globales**
   - Establecer `app.setGlobalPrefix('api')`.
   - Añadir `app.useGlobalPipes(new ValidationPipe({ ... }))`.
-  - Crear `src/common/filters/http-exception.filter.ts` e instanciarlo globalmente.
+  - Crear `src/common/guards/api-key.guard.ts` y registrarlo como primer `APP_GUARD`.
+  - Crear `src/common/middleware/http-logger.middleware.ts` para loggear peticiones y respuestas con tiempo.
+  - Crear `src/common/filters/http-exception.filter.ts` e instanciarlo globalmente con formato estandarizado.
 
 - [x] **TICKET-01.5: Configuración de Swagger OpenAPI**
-  - Configurar `DocumentBuilder` con título "Budget API", descripción y tag `BearerAuth`.
+  - Configurar `DocumentBuilder` con `addApiKey` (`x-api-key`), `addBearerAuth` (`JWT-auth`) y `addSecurityRequirements('api-key')`.
+  - Habilitar `persistAuthorization: true` en `SwaggerModule.setup`.
   - Servir la documentación en `/api/docs`.
 
 - [x] **TICKET-01.6: Configuración de Compilación y Ejecución de Producción**
@@ -90,6 +95,8 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 
 ## ✅ Verificación de la Feature
 1. Ejecutar `npm run start:dev` y comprobar que la API levanta sin errores.
-2. Navegar en el navegador a `http://localhost:3000/api/docs` y verificar la interfaz de Swagger.
-3. Probar una petición a una ruta inexistente `/api/test` y confirmar que el `HttpExceptionFilter` devuelve un JSON con formato estándar.
-4. Ejecutar `npm run build` y verificar que `dist/main.js` se genera y arranca limpiamente.
+2. Probar una petición sin `x-api-key` -> Debe responder `401 Unauthorized` con mensaje `Unauthorized request`.
+3. Probar una petición con `x-api-key: <BUDGET_API_KEY>` a `/api/health` -> Debe responder `200 OK`.
+4. Navegar a `http://localhost:3001/api/docs` y verificar la interfaz de Swagger con los esquemas de autorización.
+5. Ejecutar `npm test` y `npm run test:e2e` para comprobar que todas las pruebas pasen.
+

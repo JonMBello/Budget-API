@@ -65,10 +65,12 @@ Permitir el registro y administración de cuentas bancarias, efectivo y tarjetas
   - Métodos: `create()`, `findAllByUser()`, `findOne()`, `update()`, `remove()`, `previewStatement()`.
 
 - [ ] **TICKET-03.5: Controlador y Swagger (`CardsController`)**
-  - Endpoints REST `/api/cards` con autenticación JWT y tags Swagger correspondientes.
+  - Endpoints REST `/api/cards` protegidos con el decorador compuesto `@Auth()` (requiere obligatoriamente `x-api-key` y `Authorization: Bearer <token>`).
+  - DTOs con validaciones y mensajes en inglés (`class-validator`).
+  - Documentación OpenAPI/Swagger con tags correspondientes.
 
 - [ ] **TICKET-03.6: Pruebas Unitarias del Motor de Ciclos**
-  - Archivo `test/unit/card-cycle.util.spec.ts`.
+  - Archivo `test/unit/card-cycle.util.spec.ts` o `src/common/utils/card-cycle.util.spec.ts`.
   - Casos de prueba:
     - Compra el mismo día de corte.
     - Compra un día después del corte.
@@ -78,7 +80,7 @@ Permitir el registro y administración de cuentas bancarias, efectivo y tarjetas
 ---
 
 ## ✅ Verificación de la Feature
-1. Crear una tarjeta con corte el día 15 y pago el día 5.
+1. Crear una tarjeta con corte el día 15 y pago el día 5 enviando `x-api-key` y `Authorization: Bearer <token>`.
 2. Consultar el preview con fecha de compra `2026-09-10`:
    - Corte esperado: `2026-09-15`
    - Pago esperado: `2026-10-05`
@@ -87,4 +89,6 @@ Permitir el registro y administración de cuentas bancarias, efectivo y tarjetas
    - Corte esperado: `2026-10-15`
    - Pago esperado: `2026-11-05`
    - Mes presupuestario impactado: `Noviembre 2026`.
-4. Verificar que todas las pruebas unitarias pasen (`npm test`).
+4. Verificar que peticiones sin `x-api-key` o sin JWT respondan `401 Unauthorized` (`Unauthorized request`).
+5. Verificar que todas las pruebas unitarias pasen (`npm test`).
+

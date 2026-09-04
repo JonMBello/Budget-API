@@ -42,6 +42,15 @@ async function bootstrap() {
       'API REST para gestión financiera personal, presupuestos mensuales, seguimiento de MSI, división de cuentas compartidas y recordatorios de pago.',
     )
     .setVersion('1.0')
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-api-key',
+        in: 'header',
+        description: 'API Key requerida para todas las peticiones a la API',
+      },
+      'api-key',
+    )
     .addBearerAuth(
       {
         type: 'http',
@@ -53,11 +62,15 @@ async function bootstrap() {
       },
       'JWT-auth',
     )
+    .addSecurityRequirements('api-key')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document, {
     customSiteTitle: 'Budget API Documentation',
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
   });
 
   await app.listen(port);
