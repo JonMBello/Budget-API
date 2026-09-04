@@ -25,7 +25,7 @@ Implementar un sistema híbrido de notificaciones (**Web Push** vía VAPID para 
 > **Para** tener un respaldo claro en mi bandeja de entrada con el monto y fecha límite.
 
 **Criterios de Aceptación:**
-- [ ] Servicio de correo configurable vía SMTP o API de Resend mediante variables de entorno (`SMTP_HOST`, `SMTP_PORT`, `RESEND_API_KEY`, etc.).
+- [ ] Servicio de correo configurable vía SMTP o API de Resend mediante variables de entorno (`BUDGET_API_SMTP_HOST`, `BUDGET_API_SMTP_PORT`, `BUDGET_API_RESEND_API_KEY`, etc.).
 - [ ] Plantilla de correo HTML limpia con el detalle de cuentas por pagar y fechas de vencimiento.
 - [ ] Endpoint para disparar un correo de prueba `POST /api/notifications/test-email`.
 
@@ -53,7 +53,7 @@ Implementar un sistema híbrido de notificaciones (**Web Push** vía VAPID para 
 
 - [ ] **TICKET-09.2: Servicio de Web Push (`WebPushService`)**
   - Integrar librería `web-push`.
-  - Configurar claves VAPID (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`).
+  - Configurar claves VAPID (`BUDGET_API_VAPID_PUBLIC_KEY`, `BUDGET_API_VAPID_PRIVATE_KEY`, `BUDGET_API_VAPID_SUBJECT`).
   - Método `sendPushToUser(userId, payload)`.
 
 - [ ] **TICKET-09.3: Servicio de Correo Electrónico (`EmailService`)**

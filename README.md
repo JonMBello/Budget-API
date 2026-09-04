@@ -25,5 +25,5 @@ La planificación técnica y el desglose de historias de usuario y tickets se en
 - **Backend:** [NestJS](https://nestjs.com/) (TypeScript)
 - **Base de Datos:** [MongoDB](https://www.mongodb.com/) con [Mongoose](https://mongoosejs.com/)
 - **Documentación:** Swagger / OpenAPI (`/api/docs`)
+- **Runtime:** Node.js (v20+ LTS)
 - **Proxy Inverso:** [Caddy](https://caddyserver.com/)
-- **Contenedores:** Docker (Multi-stage build)

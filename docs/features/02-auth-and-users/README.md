@@ -1,7 +1,7 @@
 # Feature 02: Autenticación, Usuarios y Multi-Tenancy
 
 ## 📋 Objetivo
-Implementar un sistema de autenticación seguro basado en **JWT** (Access Tokens y Refresh Tokens), hashing de contraseñas con `bcrypt`, control de acceso con Guards y aislamiento estricto de datos multi-usuario mediante `userId`. Para proteger el servidor expuesto en internet, el registro estará restringido mediante un código de invitación (`REGISTRATION_INVITE_CODE`).
+Implementar un sistema de autenticación seguro basado en **JWT** (Access Tokens y Refresh Tokens), hashing de contraseñas con `bcrypt`, control de acceso con Guards y aislamiento estricto de datos multi-usuario mediante `userId`. Para proteger el servidor expuesto en internet, el registro estará restringido mediante un código de invitación (`BUDGET_API_REGISTRATION_INVITE_CODE`).
 
 ---
 
@@ -16,7 +16,7 @@ Implementar un sistema de autenticación seguro basado en **JWT** (Access Tokens
 - [ ] Endpoint `POST /api/auth/register`.
 - [ ] Valida que el email tenga formato correcto y no esté registrado previamente.
 - [ ] Valida que la contraseña cumpla con longitud mínima (ej. 8 caracteres).
-- [ ] Compara el `inviteCode` enviado con la variable de entorno `REGISTRATION_INVITE_CODE`. Si no coincide, rechaza con error `403 Forbidden`.
+- [ ] Compara el `inviteCode` enviado con la variable de entorno `BUDGET_API_REGISTRATION_INVITE_CODE`. Si no coincide, rechaza con error `403 Forbidden`.
 - [ ] La contraseña se almacena hasheada con `bcrypt` (mínimo 10 salt rounds).
 - [ ] Retorna los datos del usuario creado (sin contraseña) y los tokens de sesión.
 

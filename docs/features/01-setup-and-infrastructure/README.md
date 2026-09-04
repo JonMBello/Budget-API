@@ -14,8 +14,8 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 
 **Criterios de Aceptación:**
 - [x] Proyecto NestJS inicializado con `npm` y TypeScript estricto.
-- [x] Módulo `@nestjs/config` configurado con validación (usando `joi` o `zod`) para variables obligatorias: `PORT`, `NODE_ENV`, `MONGO_URI`, `JWT_SECRET`, `REGISTRATION_INVITE_CODE`.
-- [x] Archivos `.env.example` y `.env` documentados.
+- [x] Módulo `@nestjs/config` configurado con validación (usando `joi` o `zod`) para variables obligatorias: `BUDGET_API_PORT`, `BUDGET_API_NODE_ENV`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, `BUDGET_API_REGISTRATION_INVITE_CODE`.
+- [x] Archivos `.env.example` y `.env` documentados con prefijo `BUDGET_API_`.
 - [x] Formateo con ESLint y Prettier verificado.
 
 ---
@@ -27,7 +27,7 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 
 **Criterios de Aceptación:**
 - [x] Mongoose integrado mediante `@nestjs/mongoose`.
-- [x] Conexión parametrizada vía `MONGO_URI`.
+- [x] Conexión parametrizada vía `BUDGET_API_MONGO_URI`.
 - [x] Manejo de eventos de conexión (`connected`, `error`, `disconnected`) con logs informativos.
 - [x] Manejo de desconexión elegante (*graceful shutdown*) al detener la aplicación.
 
@@ -46,15 +46,14 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 
 ---
 
-### HU-01.4: Contenedor Docker y Configuración de Caddy
+### HU-01.4: Configuración de Caddy y Despliegue en VPS
 > **Como** administrador del VPS,  
-> **Quiero** empaquetar la API en una imagen Docker ligera y disponer de la configuración para Caddy,  
-> **Para** desplegar de forma segura y automatizada en `budget.jonmb.com/api`.
+> **Quiero** ejecutar la API nativamente en Node.js y disponer de la configuración para Caddy,  
+> **Para** servir de forma segura y automatizada la API en `budget.jonmb.com/api`.
 
 **Criterios de Aceptación:**
-- [x] `Dockerfile` multi-stage (dependencias, build y runner en Alpine Node 20/22).
-- [x] `.dockerignore` configurado para ignorar `node_modules`, `dist`, `.git`, `.env`.
-- [x] Archivo o guía `Caddyfile` con la regla de proxy inverso hacia el contenedor.
+- [x] Scripts de compilación y ejecución de producción (`npm run build`, `npm run start:prod`).
+- [x] Archivo o guía `Caddyfile` con la regla de proxy inverso hacia el proceso local de NestJS.
 
 ---
 
@@ -65,7 +64,7 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
   - Configurar `tsconfig.json` y scripts en `package.json` (`start:dev`, `build`, `test`).
 
 - [x] **TICKET-01.2: ConfigModule y validación de variables de entorno**
-  - Crear `src/config/env.validation.ts` con esquema de validación para `PORT`, `MONGO_URI`, `JWT_SECRET`, etc.
+  - Crear `src/config/env.validation.ts` con esquema de validación para `BUDGET_API_PORT`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, etc.
   - Generar `.env.example` con descripciones de cada variable.
 
 - [x] **TICKET-01.3: Módulo de Base de Datos (MongooseModule)**
@@ -81,9 +80,8 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
   - Configurar `DocumentBuilder` con título "Budget API", descripción y tag `BearerAuth`.
   - Servir la documentación en `/api/docs`.
 
-- [x] **TICKET-01.6: Dockerfile y optimización de producción**
-  - Escribir `Dockerfile` con multi-stage build (`builder` y `runner`).
-  - Crear `.dockerignore`.
+- [x] **TICKET-01.6: Configuración de Compilación y Ejecución de Producción**
+  - Configurar `tsconfig.build.json` y script `npm run start:prod`.
 
 - [x] **TICKET-01.7: Documentación de despliegue con Caddy**
   - Crear snippet de `Caddyfile` en `docs/caddy-sample.Caddyfile`.
@@ -94,4 +92,4 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 1. Ejecutar `npm run start:dev` y comprobar que la API levanta sin errores.
 2. Navegar en el navegador a `http://localhost:3000/api/docs` y verificar la interfaz de Swagger.
 3. Probar una petición a una ruta inexistente `/api/test` y confirmar que el `HttpExceptionFilter` devuelve un JSON con formato estándar.
-4. Construir la imagen con `docker build -t budget-api .` y verificar arranque en contenedor.
+4. Ejecutar `npm run build` y verificar que `dist/main.js` se genera y arranca limpiamente.

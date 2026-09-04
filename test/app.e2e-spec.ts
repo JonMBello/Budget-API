@@ -17,12 +17,12 @@ describe('AppController (e2e)', () => {
           ignoreEnvFile: true,
           load: [
             () => ({
-              PORT: 3000,
-              NODE_ENV: 'test',
-              JWT_SECRET: 'test',
-              JWT_REFRESH_SECRET: 'test',
-              REGISTRATION_INVITE_CODE: 'test',
-              MONGO_URI: 'mongodb://localhost:27017/test',
+              BUDGET_API_PORT: 3000,
+              BUDGET_API_NODE_ENV: 'test',
+              BUDGET_API_JWT_SECRET: 'test',
+              BUDGET_API_JWT_REFRESH_SECRET: 'test',
+              BUDGET_API_REGISTRATION_INVITE_CODE: 'test',
+              BUDGET_API_MONGO_URI: 'mongodb://localhost:27017/test',
             }),
           ],
         }),

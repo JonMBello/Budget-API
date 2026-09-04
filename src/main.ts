@@ -10,8 +10,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT', 3000);
-  const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+  const port = configService.get<number>('BUDGET_API_PORT', 3000);
+  const nodeEnv = configService.get<string>('BUDGET_API_NODE_ENV', 'development');
 
   // Prefijo global
   app.setGlobalPrefix('api');
