@@ -13,10 +13,11 @@ Implementar un sistema de autenticación seguro basado en **JWT** (Access Tokens
 > **Para** crear mi espacio presupuestario personal sin que extraños puedan registrarse en mi VPS.
 
 **Criterios de Aceptación:**
-- [x] Endpoint `POST /api/auth/register`.
+- [x] Endpoint `POST /api/auth/register` (requiere `x-api-key`).
+- [x] Feature flag `BUDGET_API_ALLOW_REGISTRATION` (booleana, default: `false`). Si está apagada (`false`), rechaza de inmediato con error `403 Forbidden` (`Registration is currently disabled`).
 - [x] Valida que el email tenga formato correcto y no esté registrado previamente.
 - [x] Valida que la contraseña cumpla con longitud mínima (ej. 8 caracteres).
-- [x] Compara el `inviteCode` enviado con la variable de entorno `BUDGET_API_REGISTRATION_INVITE_CODE`. Si no coincide, rechaza con error `403 Forbidden`.
+- [x] Compara el `inviteCode` enviado con la variable de entorno `BUDGET_API_REGISTRATION_INVITE_CODE`. Si no coincide, rechaza con error `403 Forbidden` (`Invalid invite code`).
 - [x] La contraseña se almacena hasheada con `bcrypt` (mínimo 10 salt rounds).
 - [x] Retorna los datos del usuario creado (sin contraseña) y los tokens de sesión.
 
@@ -74,6 +75,7 @@ Implementar un sistema de autenticación seguro basado en **JWT** (Access Tokens
 
 - [x] **TICKET-02.3: Servicio de Autenticación (`AuthService`)**
   - Métodos: `register()`, `login()`, `refreshTokens()`, `validateUser()`.
+  - Feature flag `BUDGET_API_ALLOW_REGISTRATION` para bloquear registros (`Registration is currently disabled`).
   - Comparación de `inviteCode` con `ConfigService` (`Invalid invite code`).
   - Hashing seguro con `bcrypt`.
   - Respuestas discretas en tokens inválidos o revocados (`Unauthorized request`).
@@ -99,16 +101,17 @@ Implementar un sistema de autenticación seguro basado en **JWT** (Access Tokens
   - Métodos en `UsersService`: `findById()`, `findByEmail()`, `update()`.
 
 - [x] **TICKET-02.7: Pruebas Unitarias y E2E**
-  - Unit tests para `AuthService`, `UsersService`, `ApiKeyGuard` y `JwtAuthGuard`.
+  - Unit tests para `AuthService` (incluyendo feature flag de registro apagada), `UsersService`, `ApiKeyGuard` y `JwtAuthGuard`.
   - E2E tests verificando rechazo 401 sin `x-api-key` y éxito 200 con `x-api-key`.
 
 ---
 
 ## ✅ Verificación de la Feature
 1. Intentar registrar un usuario sin `x-api-key` -> Debe responder `401 Unauthorized` (`Unauthorized request`).
-2. Intentar registrar con `x-api-key` y un `inviteCode` erróneo -> Debe responder `403 Forbidden` (`Invalid invite code`).
-3. Registrar un usuario con el `inviteCode` correcto -> Retorna usuario y tokens (`201 Created`).
-4. Hacer login con las credenciales creadas -> Retorna tokens (`200 OK`).
-5. Invocar `GET /api/users/me` con `x-api-key` y `Authorization: Bearer <token>` -> Devuelve perfil del usuario (`200 OK`).
-6. Invocar `GET /api/users/me` sin token o con token expirado -> Debe responder `401 Unauthorized` (`Unauthorized request`).
+2. Intentar registrar con `BUDGET_API_ALLOW_REGISTRATION=false` -> Debe responder `403 Forbidden` (`Registration is currently disabled`).
+3. Intentar registrar con `BUDGET_API_ALLOW_REGISTRATION=true` y un `inviteCode` erróneo -> Debe responder `403 Forbidden` (`Invalid invite code`).
+4. Registrar un usuario con `BUDGET_API_ALLOW_REGISTRATION=true` y el `inviteCode` correcto -> Retorna usuario y tokens (`201 Created`).
+5. Hacer login con las credenciales creadas -> Retorna tokens (`200 OK`).
+6. Invocar `GET /api/users/me` con `x-api-key` y `Authorization: Bearer <token>` -> Devuelve perfil del usuario (`200 OK`).
+7. Invocar `GET /api/users/me` sin token o con token expirado -> Debe responder `401 Unauthorized` (`Unauthorized request`).
 

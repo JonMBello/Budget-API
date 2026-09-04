@@ -22,6 +22,15 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+    const isRegistrationAllowed = this.configService.get<boolean>(
+      'BUDGET_API_ALLOW_REGISTRATION',
+      false,
+    );
+
+    if (!isRegistrationAllowed) {
+      throw new ForbiddenException('Registration is currently disabled');
+    }
+
     const validInviteCode = this.configService.get<string>('BUDGET_API_REGISTRATION_INVITE_CODE');
 
     if (registerDto.inviteCode !== validInviteCode) {

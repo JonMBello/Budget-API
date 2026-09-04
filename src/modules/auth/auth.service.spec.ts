@@ -48,6 +48,8 @@ describe('AuthService', () => {
     configService = {
       get: jest.fn((key: string, defaultValue?: any) => {
         switch (key) {
+          case 'BUDGET_API_ALLOW_REGISTRATION':
+            return true;
           case 'BUDGET_API_REGISTRATION_INVITE_CODE':
             return 'BUDGET_VIP_2026';
           case 'BUDGET_API_JWT_SECRET':
@@ -99,6 +101,22 @@ describe('AuthService', () => {
       expect(result.user.email).toBe('test@example.com');
       expect(usersService.create).toHaveBeenCalled();
       expect(usersService.updateRefreshTokenHash).toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenException if registration is disabled (feature flag is false)', async () => {
+      configService.get.mockImplementation((key: string, defaultValue?: any) => {
+        if (key === 'BUDGET_API_ALLOW_REGISTRATION') return false;
+        return defaultValue;
+      });
+
+      await expect(
+        authService.register({
+          email: 'test@example.com',
+          password: 'Password123!',
+          name: 'Test User',
+          inviteCode: 'BUDGET_VIP_2026',
+        }),
+      ).rejects.toThrow(new ForbiddenException('Registration is currently disabled'));
     });
 
     it('should throw ForbiddenException if invite code does not match', async () => {

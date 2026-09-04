@@ -60,5 +60,16 @@ describe('envValidationSchema', () => {
     expect(value.BUDGET_API_PORT).toBe(3000);
     expect(value.BUDGET_API_NODE_ENV).toBe('development');
     expect(value.BUDGET_API_JWT_EXPIRES_IN).toBe('1h');
+    expect(value.BUDGET_API_ALLOW_REGISTRATION).toBe(false);
+  });
+
+  it('should parse BUDGET_API_ALLOW_REGISTRATION boolean values properly', () => {
+    const envWithTrue = { ...validEnv, BUDGET_API_ALLOW_REGISTRATION: 'true' };
+    const { value: valTrue } = envValidationSchema.validate(envWithTrue);
+    expect(valTrue.BUDGET_API_ALLOW_REGISTRATION).toBe(true);
+
+    const envWithFalse = { ...validEnv, BUDGET_API_ALLOW_REGISTRATION: false };
+    const { value: valFalse } = envValidationSchema.validate(envWithFalse);
+    expect(valFalse.BUDGET_API_ALLOW_REGISTRATION).toBe(false);
   });
 });

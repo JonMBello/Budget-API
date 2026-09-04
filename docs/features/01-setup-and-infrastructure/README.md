@@ -14,7 +14,7 @@ Establecer los cimientos del proyecto creando la estructura base de NestJS con T
 
 **Criterios de Aceptación:**
 - [x] Proyecto NestJS inicializado con `npm` y TypeScript estricto.
-- [x] Módulo `@nestjs/config` configurado con validación (usando `joi` o `zod`) para variables obligatorias: `BUDGET_API_PORT`, `BUDGET_API_NODE_ENV`, `BUDGET_API_KEY`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, `BUDGET_API_REGISTRATION_INVITE_CODE`.
+- [x] Módulo `@nestjs/config` configurado con validación (usando `joi` o `zod`) para variables obligatorias: `BUDGET_API_PORT`, `BUDGET_API_NODE_ENV`, `BUDGET_API_KEY`, `BUDGET_API_MONGO_URI`, `BUDGET_API_JWT_SECRET`, `BUDGET_API_REGISTRATION_INVITE_CODE`, y feature flags como `BUDGET_API_ALLOW_REGISTRATION` (default: `false`).
 - [x] Archivos `.env.example` y `.env` documentados con prefijo `BUDGET_API_`.
 - [x] Formateo con ESLint y Prettier verificado.
 

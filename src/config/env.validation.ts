@@ -10,6 +10,7 @@ export const envValidationSchema = Joi.object({
   BUDGET_API_JWT_EXPIRES_IN: Joi.string().default('1h'),
   BUDGET_API_JWT_REFRESH_SECRET: Joi.string().required(),
   BUDGET_API_JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
+  BUDGET_API_ALLOW_REGISTRATION: Joi.boolean().default(false),
   BUDGET_API_REGISTRATION_INVITE_CODE: Joi.string().required(),
   BUDGET_API_MONGO_URI: Joi.string().uri().required(),
   BUDGET_API_VAPID_PUBLIC_KEY: Joi.string().allow('').optional(),
