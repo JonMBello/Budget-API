@@ -1,0 +1,24 @@
+# Ejemplo de configuración para Caddy Reverse Proxy (/etc/caddy/Caddyfile)
+# Dominio: budget.jonmb.com
+
+budget.jonmb.com {
+    # 1. API NestJS y Documentación Swagger
+    handle /api* {
+        reverse_proxy localhost:3000
+    }
+
+    # 2. Frontend Web PWA (cuando se compile el cliente en el VPS)
+    handle {
+        root * /var/www/budget-web/dist
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Logs de acceso opcionales
+    log {
+        output file /var/log/caddy/budget.access.log
+    }
+
+    # Compresión gzip y zstd automática
+    encode gzip zstd
+}
