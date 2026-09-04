@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from '../src/app.controller';
 import { AppService } from '../src/app.service';
@@ -45,7 +45,7 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/api/health')
       .expect(200)
-      .expect((res) => {
+      .expect((res: request.Response) => {
         expect(res.body).toHaveProperty('status', 'ok');
         expect(res.body).toHaveProperty('service', 'budget-api');
         expect(res.body).toHaveProperty('version', '1.0.0');
@@ -57,7 +57,7 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/api/non-existent')
       .expect(404)
-      .expect((res) => {
+      .expect((res: request.Response) => {
         expect(res.body).toHaveProperty('statusCode', 404);
         expect(res.body).toHaveProperty('path', '/api/non-existent');
         expect(res.body).toHaveProperty('error');
