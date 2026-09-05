@@ -274,4 +274,67 @@ describe('BudgetsService', () => {
       );
     });
   });
+
+  describe('updateIncome', () => {
+    it('should update totalIncome on an existing period', async () => {
+      mockBudgetPeriodModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPeriodDoc),
+      });
+
+      const updatedDoc = { ...mockPeriodDoc, totalIncome: 25000 };
+      mockBudgetPeriodModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedDoc),
+      });
+
+      const result = await service.updateIncome(mockUserId, 2026, 9, { totalIncome: 25000 });
+      expect(result.totalIncome).toBe(25000);
+      expect(mockBudgetPeriodModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { userId: expect.any(Types.ObjectId), year: 2026, month: 9 },
+        { $set: { totalIncome: 25000 } },
+        { new: true, runValidators: true },
+      );
+    });
+  });
+
+  describe('update', () => {
+    it('should update arbitrary fields on an existing period', async () => {
+      mockBudgetPeriodModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPeriodDoc),
+      });
+
+      const updatedDoc = {
+        ...mockPeriodDoc,
+        totalIncome: 20000,
+        carriedSavings: 6000,
+        totalExpenses: 8000,
+        notes: 'Updated notes',
+      };
+      mockBudgetPeriodModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedDoc),
+      });
+
+      const result = await service.update(mockUserId, 2026, 9, {
+        totalIncome: 20000,
+        carriedSavings: 6000,
+        totalExpenses: 8000,
+        notes: 'Updated notes',
+      });
+
+      expect(result.totalIncome).toBe(20000);
+      expect(result.carriedSavings).toBe(6000);
+      expect(result.totalExpenses).toBe(8000);
+      expect(mockBudgetPeriodModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { userId: expect.any(Types.ObjectId), year: 2026, month: 9 },
+        {
+          $set: {
+            totalIncome: 20000,
+            carriedSavings: 6000,
+            totalExpenses: 8000,
+            notes: 'Updated notes',
+          },
+        },
+        { new: true, runValidators: true },
+      );
+    });
+  });
 });

@@ -27,7 +27,9 @@ Gestionar el ciclo de vida de los presupuestos mensuales como periodos explícit
 **Criterios de Aceptación:**
 - [x] Al inicializar el mes $M$, calcula el remanente final del mes $M-1$ (`Total Ingresos + Ahorro Inicial - Total Egresos`) y lo asigna al campo `carriedSavings`.
 - [x] Endpoint `PATCH /api/budgets/:year/:month/savings` para modificar manualmente el monto de `carriedSavings`.
-- [x] La modificación del ahorro inicial recalcula de inmediato el balance en tiempo real del mes.
+- [x] Endpoint `PATCH /api/budgets/:year/:month/income` para modificar manualmente el monto de ingresos / ganancias mensuales (`totalIncome`).
+- [x] Endpoint `PATCH /api/budgets/:year/:month` para actualizar campos generales del periodo (ingresos, ahorro inicial, egresos, notas).
+- [x] La modificación de ingresos o ahorro inicial recalcula de inmediato el balance en tiempo real del mes (`netBalance`).
 
 ---
 

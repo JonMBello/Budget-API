@@ -32,6 +32,8 @@ describe('BudgetsController', () => {
     findByYearAndMonth: jest.fn(),
     updateSavings: jest.fn(),
     updateStatus: jest.fn(),
+    updateIncome: jest.fn(),
+    update: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -153,6 +155,57 @@ describe('BudgetsController', () => {
       expect(result.status).toBe(BudgetPeriodStatus.CLOSED);
       expect(service.updateStatus).toHaveBeenCalledWith(mockUserId, 2026, 9, {
         status: BudgetPeriodStatus.CLOSED,
+      });
+    });
+  });
+
+  describe('updateIncome', () => {
+    it('should update total income and return updated response with recalculated netBalance', async () => {
+      const updatedDoc = {
+        ...mockPeriodDoc,
+        totalIncome: 25000,
+      };
+      mockBudgetsService.updateIncome.mockResolvedValue(updatedDoc);
+
+      const result = await controller.updateIncome(mockUserId, 2026, 9, {
+        totalIncome: 25000,
+      });
+
+      expect(result.totalIncome).toBe(25000);
+      expect(result.netBalance).toBe(20000); // 5000 + 25000 - 10000
+      expect(service.updateIncome).toHaveBeenCalledWith(mockUserId, 2026, 9, {
+        totalIncome: 25000,
+      });
+    });
+  });
+
+  describe('update', () => {
+    it('should update multiple fields and return updated response', async () => {
+      const updatedDoc = {
+        ...mockPeriodDoc,
+        totalIncome: 20000,
+        carriedSavings: 6000,
+        totalExpenses: 8000,
+        notes: 'Adjusted budget',
+      };
+      mockBudgetsService.update.mockResolvedValue(updatedDoc);
+
+      const result = await controller.update(mockUserId, 2026, 9, {
+        totalIncome: 20000,
+        carriedSavings: 6000,
+        totalExpenses: 8000,
+        notes: 'Adjusted budget',
+      });
+
+      expect(result.totalIncome).toBe(20000);
+      expect(result.carriedSavings).toBe(6000);
+      expect(result.totalExpenses).toBe(8000);
+      expect(result.netBalance).toBe(18000); // 6000 + 20000 - 8000
+      expect(service.update).toHaveBeenCalledWith(mockUserId, 2026, 9, {
+        totalIncome: 20000,
+        carriedSavings: 6000,
+        totalExpenses: 8000,
+        notes: 'Adjusted budget',
       });
     });
   });

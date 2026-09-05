@@ -4,6 +4,8 @@ import { BudgetsService } from './budgets.service';
 import { InitializeBudgetDto } from './dto/initialize-budget.dto';
 import { UpdateSavingsDto } from './dto/update-savings.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateIncomeDto } from './dto/update-income.dto';
+import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { BudgetResponseDto } from './dto/budget-response.dto';
 import { Auth } from '../../common/decorators/auth.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -113,6 +115,42 @@ export class BudgetsController {
     @Body() dto: UpdateStatusDto,
   ): Promise<BudgetResponseDto> {
     const updated = await this.budgetsService.updateStatus(userId, year, month, dto);
+    return this.toResponse(updated);
+  }
+
+  @Patch(':year/:month/income')
+  @ApiOperation({ summary: 'Update monthly income / earnings for a specific budget period' })
+  @ApiResponse({
+    status: 200,
+    description: 'Budget period updated with new total income',
+    type: BudgetResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Budget period not found' })
+  async updateIncome(
+    @CurrentUser('userId') userId: string,
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+    @Body() dto: UpdateIncomeDto,
+  ): Promise<BudgetResponseDto> {
+    const updated = await this.budgetsService.updateIncome(userId, year, month, dto);
+    return this.toResponse(updated);
+  }
+
+  @Patch(':year/:month')
+  @ApiOperation({ summary: 'Update budget period fields (income, savings, expenses, notes)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Budget period updated successfully',
+    type: BudgetResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Budget period not found' })
+  async update(
+    @CurrentUser('userId') userId: string,
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+    @Body() dto: UpdateBudgetDto,
+  ): Promise<BudgetResponseDto> {
+    const updated = await this.budgetsService.update(userId, year, month, dto);
     return this.toResponse(updated);
   }
 

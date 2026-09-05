@@ -14,6 +14,8 @@ import {
 import { InitializeBudgetDto } from './dto/initialize-budget.dto';
 import { UpdateSavingsDto } from './dto/update-savings.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateIncomeDto } from './dto/update-income.dto';
+import { UpdateBudgetDto } from './dto/update-budget.dto';
 
 @Injectable()
 export class BudgetsService {
@@ -207,6 +209,58 @@ export class BudgetsService {
           month,
         },
         { $set: { status: dto.status } },
+        { new: true, runValidators: true },
+      )
+      .exec();
+
+    return updated!;
+  }
+
+  async updateIncome(
+    userId: string,
+    year: number,
+    month: number,
+    dto: UpdateIncomeDto,
+  ): Promise<BudgetPeriodDocument> {
+    await this.findByYearAndMonth(userId, year, month);
+
+    const updated = await this.budgetPeriodModel
+      .findOneAndUpdate(
+        {
+          userId: new Types.ObjectId(userId),
+          year,
+          month,
+        },
+        { $set: { totalIncome: dto.totalIncome } },
+        { new: true, runValidators: true },
+      )
+      .exec();
+
+    return updated!;
+  }
+
+  async update(
+    userId: string,
+    year: number,
+    month: number,
+    dto: UpdateBudgetDto,
+  ): Promise<BudgetPeriodDocument> {
+    await this.findByYearAndMonth(userId, year, month);
+
+    const updateFields: Record<string, any> = {};
+    if (dto.totalIncome !== undefined) updateFields.totalIncome = dto.totalIncome;
+    if (dto.carriedSavings !== undefined) updateFields.carriedSavings = dto.carriedSavings;
+    if (dto.totalExpenses !== undefined) updateFields.totalExpenses = dto.totalExpenses;
+    if (dto.notes !== undefined) updateFields.notes = dto.notes;
+
+    const updated = await this.budgetPeriodModel
+      .findOneAndUpdate(
+        {
+          userId: new Types.ObjectId(userId),
+          year,
+          month,
+        },
+        { $set: updateFields },
         { new: true, runValidators: true },
       )
       .exec();
