@@ -13,9 +13,9 @@ Gestionar el ciclo de vida de los presupuestos mensuales como periodos explícit
 > **Para** organizar mis ingresos, egresos y metas sin mezclar meses ni alterar registros históricos.
 
 **Criterios de Aceptación:**
-- [ ] No puede existir más de un `BudgetPeriod` para el mismo usuario con el mismo `year` y `month` (índice único compuesto `{ userId, year, month }`).
-- [ ] Endpoint `POST /api/budgets/initialize` que recibe el año y mes a crear (o por defecto el mes siguiente al último registrado).
-- [ ] Soporte para estados: `OPEN` (activo para registrar transacciones) y `CLOSED` (cerrado/archivado).
+- [x] No puede existir más de un `BudgetPeriod` para el mismo usuario con el mismo `year` y `month` (índice único compuesto `{ userId, year, month }`).
+- [x] Endpoint `POST /api/budgets/initialize` que recibe el año y mes a crear (o por defecto el mes siguiente al último registrado).
+- [x] Soporte para estados: `OPEN` (activo para registrar transacciones) y `CLOSED` (cerrado/archivado).
 
 ---
 
@@ -25,9 +25,9 @@ Gestionar el ciclo de vida de los presupuestos mensuales como periodos explícit
 > **Para** mantener continuidad de mi patrimonio sin registros manuales tediosos.
 
 **Criterios de Aceptación:**
-- [ ] Al inicializar el mes $M$, calcula el remanente final del mes $M-1$ (`Total Ingresos + Ahorro Inicial - Total Egresos`) y lo asigna al campo `carriedSavings`.
-- [ ] Endpoint `PATCH /api/budgets/:year/:month/savings` para modificar manualmente el monto de `carriedSavings`.
-- [ ] La modificación del ahorro inicial recalcula de inmediato el balance en tiempo real del mes.
+- [x] Al inicializar el mes $M$, calcula el remanente final del mes $M-1$ (`Total Ingresos + Ahorro Inicial - Total Egresos`) y lo asigna al campo `carriedSavings`.
+- [x] Endpoint `PATCH /api/budgets/:year/:month/savings` para modificar manualmente el monto de `carriedSavings`.
+- [x] La modificación del ahorro inicial recalcula de inmediato el balance en tiempo real del mes.
 
 ---
 
@@ -37,23 +37,23 @@ Gestionar el ciclo de vida de los presupuestos mensuales como periodos explícit
 > **Para** analizar mi historial financiero y comparar mi comportamiento de gastos entre meses.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `GET /api/budgets` que devuelve la lista ordenada cronológicamente de periodos con resumen básico (año, mes, total ingresos, total egresos, ahorro final).
-- [ ] Endpoint `GET /api/budgets/current` que redirige o retorna el periodo del mes actual en curso.
-- [ ] Endpoint `GET /api/budgets/:year/:month` con el detalle completo del mes.
+- [x] Endpoint `GET /api/budgets` que devuelve la lista ordenada cronológicamente de periodos con resumen básico (año, mes, total ingresos, total egresos, ahorro final).
+- [x] Endpoint `GET /api/budgets/current` que redirige o retorna el periodo del mes actual en curso.
+- [x] Endpoint `GET /api/budgets/:year/:month` con el detalle completo del mes.
 
 ---
 
 ## 🛠️ Desglose de Tickets Técnicos
 
-- [ ] **TICKET-05.1: Esquema Mongoose `BudgetPeriod`**
+- [x] **TICKET-05.1: Esquema Mongoose `BudgetPeriod`**
   - Archivo `src/modules/budgets/schemas/budget-period.schema.ts`.
   - Campos: `userId`, `year` (number), `month` (1-12), `status` (`OPEN`, `CLOSED`), `carriedSavings` (number, default: 0), `notes`, `createdAt`, `updatedAt`.
   - Índice único: `{ userId: 1, year: 1, month: 1 }`.
 
-- [ ] **TICKET-05.2: DTOs del Módulo de Presupuestos**
+- [x] **TICKET-05.2: DTOs del Módulo de Presupuestos**
   - `initialize-budget.dto.ts`, `update-savings.dto.ts`, `budget-response.dto.ts`.
 
-- [ ] **TICKET-05.3: Servicio de Presupuestos (`BudgetsService`)**
+- [x] **TICKET-05.3: Servicio de Presupuestos (`BudgetsService`)**
   - Métodos:
     - `initializePeriod(userId, year, month)`: Lógica para obtener el mes previo, calcular balance final y asignar `carriedSavings`.
     - `getCurrentPeriod(userId)`: Encuentra el mes activo actual o el más reciente.
@@ -61,10 +61,10 @@ Gestionar el ciclo de vida de los presupuestos mensuales como periodos explícit
     - `updateSavings(userId, year, month, newSavings)`.
     - `findAllByUser(userId)`.
 
-- [ ] **TICKET-05.4: Controlador `BudgetsController`**
+- [x] **TICKET-05.4: Controlador `BudgetsController`**
   - Endpoints REST documentados en Swagger con sus códigos de respuesta.
 
-- [ ] **TICKET-05.5: Pruebas Unitarias**
+- [x] **TICKET-05.5: Pruebas Unitarias**
   - Validación del cálculo de acarreo de ahorro entre meses consecutivos.
   - Comprobación de que no se dupliquen meses para el mismo usuario.
 
