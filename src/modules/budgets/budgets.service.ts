@@ -267,4 +267,28 @@ export class BudgetsService {
 
     return updated!;
   }
+
+  async syncTotals(
+    userId: string,
+    periodId: string,
+    totalIncome?: number,
+    totalExpenses?: number,
+  ): Promise<BudgetPeriodDocument | null> {
+    const updateFields: Record<string, any> = {};
+    if (totalIncome !== undefined) updateFields.totalIncome = totalIncome;
+    if (totalExpenses !== undefined) updateFields.totalExpenses = totalExpenses;
+
+    if (Object.keys(updateFields).length === 0) return null;
+
+    return this.budgetPeriodModel
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(periodId),
+          userId: new Types.ObjectId(userId),
+        },
+        { $set: updateFields },
+        { new: true },
+      )
+      .exec();
+  }
 }

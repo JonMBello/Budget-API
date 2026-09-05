@@ -8,6 +8,7 @@ import { DebtSummaryResponseDto } from './dto/debt-summary.dto';
 import { SettleDebtDto, SettleDebtResponseDto } from './dto/settle-debt.dto';
 import { RecurringService } from '../recurring/recurring.service';
 import { RecurringCategory } from '../recurring/schemas/recurring-template.schema';
+import { ExpensesService } from '../expenses/expenses.service';
 
 @Injectable()
 export class PeopleService {
@@ -15,6 +16,7 @@ export class PeopleService {
     @InjectModel(Person.name)
     private readonly personModel: Model<PersonDocument>,
     private readonly recurringService: RecurringService,
+    private readonly expensesService: ExpensesService,
   ) {}
 
   async create(userId: string, createPersonDto: CreatePersonDto): Promise<PersonDocument> {
@@ -132,6 +134,41 @@ export class PeopleService {
       }
     }
 
+    const pendingExpenses = await this.expensesService.findPendingDebtsByPerson(userId, personId);
+
+    const singleExpenses = [];
+    const dueDates: string[] = [];
+
+    for (const exp of pendingExpenses) {
+      const amount = exp.split?.splitAmount ?? exp.amount;
+      totalDebt += amount;
+      immediateDueAmount += amount;
+
+      const cardName = (exp.cardId as any)?.name ?? 'Sin tarjeta';
+      const dueDateStr = exp.paymentDueDate
+        ? new Date(exp.paymentDueDate).toISOString().split('T')[0]
+        : null;
+
+      if (dueDateStr) {
+        dueDates.push(dueDateStr);
+      }
+
+      const dateStr = new Date(exp.date).toISOString().split('T')[0];
+
+      singleExpenses.push({
+        id: exp._id.toString(),
+        title: exp.title,
+        cardName,
+        amount,
+        date: dateStr,
+        paymentDueDate: dueDateStr,
+        isPaid: !(exp.split?.isDebtActive ?? true),
+      });
+    }
+
+    dueDates.sort();
+    const nextPaymentDueDate = dueDates.length > 0 ? dueDates[0] : null;
+
     return {
       personId: person._id.toString(),
       name: person.name,
@@ -140,10 +177,10 @@ export class PeopleService {
       email: person.email ?? null,
       totalDebt: Math.round(totalDebt * 100) / 100,
       immediateDueAmount: Math.round(immediateDueAmount * 100) / 100,
-      nextPaymentDueDate: null,
+      nextPaymentDueDate,
       msiInstallments,
       recurringServices,
-      singleExpenses: [],
+      singleExpenses,
     };
   }
 
@@ -154,11 +191,20 @@ export class PeopleService {
   ): Promise<SettleDebtResponseDto> {
     const person = await this.findOne(userId, personId);
 
+    let settledAmount = settleDebtDto.amount ?? 0;
+
+    if (settleDebtDto.expenseId) {
+      const expense = await this.expensesService.markSplitAsPaid(userId, settleDebtDto.expenseId);
+      if (settleDebtDto.amount === undefined && expense.split?.splitAmount) {
+        settledAmount = expense.split.splitAmount;
+      }
+    }
+
     return {
       success: true,
       message: 'Debt settled successfully',
       personId: person._id.toString(),
-      amount: settleDebtDto.amount ?? 0,
+      amount: settledAmount,
       settledAt: new Date(),
     };
   }

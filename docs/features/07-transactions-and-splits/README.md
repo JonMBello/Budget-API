@@ -13,10 +13,10 @@ Gestionar el registro de ingresos y egresos vinculados a los periodos presupuest
 > **Para** saber en qué se va mi dinero y asociarlo al método de pago correspondiente.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/expenses`.
-- [ ] Campos: `title`, `amount`, `category` (`SERVICE`, `SUBSCRIPTION`, `MSI`, `REGULAR_EXPENSE`, `FOOD`, `TRANSPORT`, etc.), `date`, `cardId` (opcional), `periodId`.
-- [ ] Si se asocia a una tarjeta de crédito, calcula la fecha de vencimiento `paymentDueDate`.
-- [ ] Endpoints para listar (`GET /api/expenses`), editar (`PATCH /api/expenses/:id`) y eliminar (`DELETE /api/expenses/:id`).
+- [x] Endpoint `POST /api/expenses`.
+- [x] Campos: `title`, `amount`, `category` (`SERVICE`, `SUBSCRIPTION`, `MSI`, `REGULAR_EXPENSE`, `FOOD`, `TRANSPORT`, etc.), `date`, `cardId` (opcional), `periodId`.
+- [x] Si se asocia a una tarjeta de crédito, calcula la fecha de vencimiento `paymentDueDate`.
+- [x] Endpoints para listar (`GET /api/expenses`), editar (`PATCH /api/expenses/:id`) y eliminar (`DELETE /api/expenses/:id`).
 
 ---
 
@@ -26,17 +26,17 @@ Gestionar el registro de ingresos y egresos vinculados a los periodos presupuest
 > **Para** que la API registre el 100% del gasto en mi tarjeta pero cree automáticamente un ingreso por cobrar de la parte ajena.
 
 **Criterios de Aceptación:**
-- [ ] En la creación o edición de un gasto, se puede incluir el objeto `split: { personId, type: 'PERCENTAGE' | 'FIXED', value: number }`.
-- [ ] El sistema calcula el `splitAmount` (lo que le toca a la otra persona).
-- [ ] Crea automáticamente un registro en la colección `Income` en el mismo mes con:
+- [x] En la creación o edición de un gasto, se puede incluir el objeto `split: { personId, type: 'PERCENTAGE' | 'FIXED', value: number }`.
+- [x] El sistema calcula el `splitAmount` (lo que le toca a la otra persona).
+- [x] Crea automáticamente un registro en la colección `Income` en el mismo mes con:
   - `source: 'DEBT_COLLECTION'`.
   - `title: 'Cobro a [Nombre Persona]: [Título del Gasto]'`.
   - `amount: splitAmount`.
   - `isReceived: false`.
   - `dueDate`: fecha límite de la tarjeta o del gasto.
   - `linkedExpenseId`: referencia cruzada.
-- [ ] Si se edita el monto del gasto o el split, el ingreso proyectado se recalcula en sincronía.
-- [ ] Si se elimina el gasto, el ingreso proyectado se elimina automáticamente.
+- [x] Si se edita el monto del gasto o el split, el ingreso proyectado se recalcula en sincronía.
+- [x] Si se elimina el gasto, el ingreso proyectado se elimina automáticamente.
 
 ---
 
@@ -46,9 +46,9 @@ Gestionar el registro de ingresos y egresos vinculados a los periodos presupuest
 > **Para** diferenciar mis ingresos fijos de trabajo de otros ingresos secundarios o esporádicos.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/incomes`.
-- [ ] Campos: `title`, `amount`, `date`, `source` (`PAYROLL`, `DEBT_COLLECTION`, `DEPOSIT`, `INVESTMENT`, `OTHER`), `isReceived` (boolean).
-- [ ] Endpoints para listar (`GET /api/incomes`), editar (`PATCH /api/incomes/:id`) y eliminar (`DELETE /api/incomes/:id`).
+- [x] Endpoint `POST /api/incomes`.
+- [x] Campos: `title`, `amount`, `date`, `source` (`PAYROLL`, `DEBT_COLLECTION`, `DEPOSIT`, `INVESTMENT`, `OTHER`), `isReceived` (boolean).
+- [x] Endpoints para listar (`GET /api/incomes`), editar (`PATCH /api/incomes/:id`) y eliminar (`DELETE /api/incomes/:id`).
 
 ---
 
@@ -58,40 +58,40 @@ Gestionar el registro de ingresos y egresos vinculados a los periodos presupuest
 > **Para** no tener que capturar manualmente mi sueldo y fuentes recurrentes cada primero de mes.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/incomes/copy-from-previous-month`.
-- [ ] Copia todos los ingresos del mes anterior que tengan `source: 'PAYROLL'` o recurrente (omite cobros de deudas de terceros específicos ya liquidados).
-- [ ] Los nuevos ingresos se crean con `isReceived: false` y fecha ajustada al mes actual.
+- [x] Endpoint `POST /api/incomes/copy-from-previous-month`.
+- [x] Copia todos los ingresos del mes anterior que tengan `source: 'PAYROLL'` o recurrente (omite cobros de deudas de terceros específicos ya liquidados).
+- [x] Los nuevos ingresos se crean con `isReceived: false` y fecha ajustada al mes actual.
 
 ---
 
 ## 🛠️ Desglose de Tickets Técnicos
 
-- [ ] **TICKET-07.1: Esquema Mongoose `Expense`**
+- [x] **TICKET-07.1: Esquema Mongoose `Expense`**
   - Archivo `src/modules/expenses/schemas/expense.schema.ts`.
   - Campos: `userId`, `periodId`, `templateId`, `cardId`, `title`, `amount`, `category`, `date`, `paymentDueDate`, `isPaid`, `split: { personId, splitAmount, isDebtActive, linkedIncomeId }`.
   - Índices: `{ userId: 1, periodId: 1 }`.
 
-- [ ] **TICKET-07.2: Esquema Mongoose `Income`**
+- [x] **TICKET-07.2: Esquema Mongoose `Income`**
   - Archivo `src/modules/incomes/schemas/income.schema.ts`.
   - Campos: `userId`, `periodId`, `title`, `amount`, `date`, `source` (`PAYROLL`, `DEBT_COLLECTION`, `DEPOSIT`, `INVESTMENT`, `OTHER`), `isReceived`, `linkedExpenseId`, `debtorPersonId`.
   - Índices: `{ userId: 1, periodId: 1 }`.
 
-- [ ] **TICKET-07.3: DTOs de Gastos e Ingresos**
+- [x] **TICKET-07.3: DTOs de Gastos e Ingresos**
   - `create-expense.dto.ts` (con validador anidado de `split`), `update-expense.dto.ts`.
   - `create-income.dto.ts`, `update-income.dto.ts`, `copy-incomes.dto.ts`.
 
-- [ ] **TICKET-07.4: Servicio de Gastos con Lógica de Split (`ExpensesService`)**
+- [x] **TICKET-07.4: Servicio de Gastos con Lógica de Split (`ExpensesService`)**
   - Al guardar un gasto con split: inyectar `IncomesService` y crear el ingreso projected.
   - Al actualizar gasto: recalcular o crear/borrar el ingreso proyectado.
   - Al borrar gasto: borrar el ingreso vinculado si no ha sido marcado como pagado.
 
-- [ ] **TICKET-07.5: Servicio de Ingresos (`IncomesService`)**
+- [x] **TICKET-07.5: Servicio de Ingresos (`IncomesService`)**
   - Métodos: `create()`, `findAllByPeriod()`, `update()`, `remove()`, `copyFromPreviousMonth()`.
 
-- [ ] **TICKET-07.6: Controladores `ExpensesController` e `IncomesController`**
+- [x] **TICKET-07.6: Controladores `ExpensesController` e `IncomesController`**
   - Endpoints REST con Swagger bajo `/api/expenses` y `/api/incomes`.
 
-- [ ] **TICKET-07.7: Pruebas Unitarias e Integración de Splits**
+- [x] **TICKET-07.7: Pruebas Unitarias e Integración de Splits**
   - Probar que la creación de un gasto de \$1,000 con 40% a favor de una persona genere un ingreso proyectado de \$400.
   - Probar eliminación en cascada del ingreso proyectado al eliminar el gasto.
 

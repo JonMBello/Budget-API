@@ -11,6 +11,8 @@ import { CardsModule } from './modules/cards/cards.module';
 import { PeopleModule } from './modules/people/people.module';
 import { BudgetsModule } from './modules/budgets/budgets.module';
 import { RecurringModule } from './modules/recurring/recurring.module';
+import { IncomesModule } from './modules/incomes/incomes.module';
+import { ExpensesModule } from './modules/expenses/expenses.module';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
@@ -38,6 +40,8 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
     PeopleModule,
     BudgetsModule,
     RecurringModule,
+    IncomesModule,
+    ExpensesModule,
   ],
   controllers: [AppController],
   providers: [

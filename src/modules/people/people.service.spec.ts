@@ -5,6 +5,7 @@ import { Types } from 'mongoose';
 import { PeopleService } from './people.service';
 import { Person } from './schemas/person.schema';
 import { RecurringService } from '../recurring/recurring.service';
+import { ExpensesService } from '../expenses/expenses.service';
 
 describe('PeopleService', () => {
   let service: PeopleService;
@@ -26,6 +27,7 @@ describe('PeopleService', () => {
   };
 
   let mockRecurringService: any;
+  let mockExpensesService: any;
 
   beforeEach(async () => {
     mockPersonModel = jest.fn().mockImplementation(() => mockPersonDoc);
@@ -35,6 +37,11 @@ describe('PeopleService', () => {
 
     mockRecurringService = {
       findActiveDebtsByPerson: jest.fn().mockResolvedValue([]),
+    };
+
+    mockExpensesService = {
+      findPendingDebtsByPerson: jest.fn().mockResolvedValue([]),
+      markSplitAsPaid: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -47,6 +54,10 @@ describe('PeopleService', () => {
         {
           provide: RecurringService,
           useValue: mockRecurringService,
+        },
+        {
+          provide: ExpensesService,
+          useValue: mockExpensesService,
         },
       ],
     }).compile();
@@ -245,6 +256,43 @@ describe('PeopleService', () => {
       expect(summary.msiInstallments).toHaveLength(1);
       expect(summary.recurringServices).toHaveLength(1);
     });
+
+    it('should aggregate pending single expenses and compute nextPaymentDueDate', async () => {
+      mockPersonModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPersonDoc),
+      });
+
+      const mockExpense = {
+        _id: new Types.ObjectId('444444444444444444444444'),
+        title: 'Friday Dinner',
+        amount: 800,
+        date: new Date('2026-09-02'),
+        paymentDueDate: new Date('2026-10-05'),
+        cardId: { name: 'BBVA Platinum' },
+        split: {
+          splitAmount: 400,
+          isDebtActive: true,
+        },
+      };
+
+      mockExpensesService.findPendingDebtsByPerson.mockResolvedValue([mockExpense]);
+
+      const summary = await service.getDebtsSummary(mockUserId, mockPersonId);
+
+      expect(summary.totalDebt).toBe(400);
+      expect(summary.immediateDueAmount).toBe(400);
+      expect(summary.nextPaymentDueDate).toBe('2026-10-05');
+      expect(summary.singleExpenses).toHaveLength(1);
+      expect(summary.singleExpenses[0]).toEqual({
+        id: '444444444444444444444444',
+        title: 'Friday Dinner',
+        cardName: 'BBVA Platinum',
+        amount: 400,
+        date: '2026-09-02',
+        paymentDueDate: '2026-10-05',
+        isPaid: false,
+      });
+    });
   });
 
   describe('settleDebt', () => {
@@ -263,6 +311,26 @@ describe('PeopleService', () => {
       expect(result.personId).toBe(mockPersonId);
       expect(result.amount).toBe(350.5);
       expect(result.settledAt).toBeInstanceOf(Date);
+    });
+
+    it('should mark expense split as paid if expenseId is provided', async () => {
+      mockPersonModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPersonDoc),
+      });
+
+      const expenseId = '444444444444444444444444';
+      mockExpensesService.markSplitAsPaid.mockResolvedValue({
+        _id: new Types.ObjectId(expenseId),
+        split: { splitAmount: 250 },
+      });
+
+      const result = await service.settleDebt(mockUserId, mockPersonId, {
+        expenseId,
+      });
+
+      expect(mockExpensesService.markSplitAsPaid).toHaveBeenCalledWith(mockUserId, expenseId);
+      expect(result.amount).toBe(250);
+      expect(result.success).toBe(true);
     });
   });
 });

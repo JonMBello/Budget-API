@@ -4,6 +4,7 @@ import { Person, PersonSchema } from './schemas/person.schema';
 import { PeopleService } from './people.service';
 import { PeopleController } from './people.controller';
 import { RecurringModule } from '../recurring/recurring.module';
+import { ExpensesModule } from '../expenses/expenses.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RecurringModule } from '../recurring/recurring.module';
       },
     ]),
     RecurringModule,
+    ExpensesModule,
   ],
   controllers: [PeopleController],
   providers: [PeopleService],
