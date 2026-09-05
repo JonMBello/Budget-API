@@ -1,12 +1,14 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BudgetsService } from './budgets.service';
+import { BudgetMetricsService } from './services/budget-metrics.service';
 import { InitializeBudgetDto } from './dto/initialize-budget.dto';
 import { UpdateSavingsDto } from './dto/update-savings.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { UpdateIncomeDto } from './dto/update-income.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { BudgetResponseDto } from './dto/budget-response.dto';
+import { BudgetSummaryResponseDto } from './dto/budget-summary.dto';
 import { Auth } from '../../common/decorators/auth.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { BudgetPeriodDocument } from './schemas/budget-period.schema';
@@ -15,7 +17,10 @@ import { BudgetPeriodDocument } from './schemas/budget-period.schema';
 @Auth()
 @Controller('budgets')
 export class BudgetsController {
-  constructor(private readonly budgetsService: BudgetsService) {}
+  constructor(
+    private readonly budgetsService: BudgetsService,
+    private readonly budgetMetricsService: BudgetMetricsService,
+  ) {}
 
   @Post('initialize')
   @ApiOperation({
@@ -63,6 +68,42 @@ export class BudgetsController {
   async getCurrent(@CurrentUser('userId') userId: string): Promise<BudgetResponseDto> {
     const period = await this.budgetsService.getCurrentPeriod(userId);
     return this.toResponse(period);
+  }
+
+  @Get('current/summary')
+  @ApiOperation({
+    summary:
+      'Get real-time financial metrics, discretionary payroll surplus, and balances for current budget period',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Current budget period real-time metrics and summary',
+    type: BudgetSummaryResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'No budget periods found' })
+  async getCurrentSummary(
+    @CurrentUser('userId') userId: string,
+  ): Promise<BudgetSummaryResponseDto> {
+    return this.budgetMetricsService.getCurrentSummary(userId);
+  }
+
+  @Get(':year/:month/summary')
+  @ApiOperation({
+    summary:
+      'Get real-time financial metrics, discretionary payroll surplus, and balances for a specific year and month',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Specific budget period real-time metrics and summary',
+    type: BudgetSummaryResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Budget period not found' })
+  async getSummaryByYearAndMonth(
+    @CurrentUser('userId') userId: string,
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+  ): Promise<BudgetSummaryResponseDto> {
+    return this.budgetMetricsService.getSummaryByYearAndMonth(userId, year, month);
   }
 
   @Get(':year/:month')

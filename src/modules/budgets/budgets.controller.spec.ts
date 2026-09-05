@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Types } from 'mongoose';
 import { BudgetsController } from './budgets.controller';
 import { BudgetsService } from './budgets.service';
+import { BudgetMetricsService } from './services/budget-metrics.service';
 import { BudgetPeriodStatus } from './schemas/budget-period.schema';
 
 describe('BudgetsController', () => {
   let controller: BudgetsController;
   let service: BudgetsService;
+  let metricsService: BudgetMetricsService;
 
   const mockUserId = '654321654321654321654321';
   const mockPeriodId = '111111111111111111111111';
@@ -36,6 +38,11 @@ describe('BudgetsController', () => {
     update: jest.fn(),
   };
 
+  const mockBudgetMetricsService = {
+    getCurrentSummary: jest.fn(),
+    getSummaryByYearAndMonth: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BudgetsController],
@@ -44,11 +51,16 @@ describe('BudgetsController', () => {
           provide: BudgetsService,
           useValue: mockBudgetsService,
         },
+        {
+          provide: BudgetMetricsService,
+          useValue: mockBudgetMetricsService,
+        },
       ],
     }).compile();
 
     controller = module.get<BudgetsController>(BudgetsController);
     service = module.get<BudgetsService>(BudgetsService);
+    metricsService = module.get<BudgetMetricsService>(BudgetMetricsService);
   });
 
   afterEach(() => {
@@ -207,6 +219,42 @@ describe('BudgetsController', () => {
         totalExpenses: 8000,
         notes: 'Adjusted budget',
       });
+    });
+  });
+
+  describe('getCurrentSummary', () => {
+    it('should delegate to budgetMetricsService.getCurrentSummary and return metrics DTO', async () => {
+      const mockSummary: any = {
+        periodId: mockPeriodId,
+        year: 2026,
+        month: 9,
+        netBalance: 20900,
+      };
+
+      mockBudgetMetricsService.getCurrentSummary.mockResolvedValue(mockSummary);
+
+      const result = await controller.getCurrentSummary(mockUserId);
+
+      expect(metricsService.getCurrentSummary).toHaveBeenCalledWith(mockUserId);
+      expect(result).toEqual(mockSummary);
+    });
+  });
+
+  describe('getSummaryByYearAndMonth', () => {
+    it('should delegate to budgetMetricsService.getSummaryByYearAndMonth and return metrics DTO', async () => {
+      const mockSummary: any = {
+        periodId: mockPeriodId,
+        year: 2026,
+        month: 9,
+        netBalance: 20900,
+      };
+
+      mockBudgetMetricsService.getSummaryByYearAndMonth.mockResolvedValue(mockSummary);
+
+      const result = await controller.getSummaryByYearAndMonth(mockUserId, 2026, 9);
+
+      expect(metricsService.getSummaryByYearAndMonth).toHaveBeenCalledWith(mockUserId, 2026, 9);
+      expect(result).toEqual(mockSummary);
     });
   });
 });

@@ -13,8 +13,8 @@ Calcular y exponer resúmenes financieros en tiempo real para cualquier periodo 
 > **Para** saber cuánto dinero real me queda en el mes considerando el ahorro previo.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `GET /api/budgets/:year/:month/summary` (y `/api/budgets/current/summary`).
-- [ ] Retorna:
+- [x] Endpoint `GET /api/budgets/:year/:month/summary` (y `/api/budgets/current/summary`).
+- [x] Retorna:
   - `carriedSavings`: Ahorro transferido del mes anterior.
   - `totalIncome`: Suma de todos los ingresos (recibidos y proyectados).
   - `totalReceivedIncome`: Suma solo de ingresos ya efectivamente cobrados.
@@ -30,11 +30,11 @@ Calcular y exponer resúmenes financieros en tiempo real para cualquier periodo 
 > **Para** conocer mi presupuesto discrecional seguro sin poner en riesgo el pago de mis compromisos.
 
 **Criterios de Aceptación:**
-- [ ] Identifica todos los egresos del mes con categorías recurrentes (`SERVICE`, `SUBSCRIPTION`, `MSI`).
-- [ ] Suma todos los ingresos del mes con `source: 'PAYROLL'`.
-- [ ] Calcula:
+- [x] Identifica todos los egresos del mes con categorías recurrentes (`SERVICE`, `SUBSCRIPTION`, `MSI`).
+- [x] Suma todos los ingresos del mes con `source: 'PAYROLL'`.
+- [x] Calcula:
   $$\text{DiscretionaryPayrollSurplus} = \text{TotalPayrollIncome} - (\text{Services} + \text{Subscriptions} + \text{MSI\_Installments})$$
-- [ ] Muestra el total ya gastado en compras regulares personales (`REGULAR_EXPENSE`) y cuánto queda de ese excedente de nómina.
+- [x] Muestra el total ya gastado en compras regulares personales (`REGULAR_EXPENSE`) y cuánto queda de ese excedente de nómina.
 
 ---
 
@@ -44,28 +44,28 @@ Calcular y exponer resúmenes financieros en tiempo real para cualquier periodo 
 > **Para** dar seguimiento a las personas que me deben dinero antes de las fechas de corte/pago.
 
 **Criterios de Aceptación:**
-- [ ] Muestra el total de cobros pendientes del mes (`source: 'DEBT_COLLECTION'`, `isReceived: false`).
-- [ ] Lista los deudores del mes con sus montos y fechas de vencimiento próximas.
+- [x] Muestra el total de cobros pendientes del mes (`source: 'DEBT_COLLECTION'`, `isReceived: false`).
+- [x] Lista los deudores del mes con sus montos y fechas de vencimiento próximas.
 
 ---
 
 ## 🛠️ Desglose de Tickets Técnicos
 
-- [ ] **TICKET-08.1: Servicio de Métricas Financieras (`BudgetMetricsService`)**
+- [x] **TICKET-08.1: Servicio de Métricas Financieras (`BudgetMetricsService`)**
   - Archivo `src/modules/budgets/services/budget-metrics.service.ts`.
   - Agregaciones optimizadas en MongoDB para:
     - Agrupar egresos por categoría (`SERVICE`, `SUBSCRIPTION`, `MSI`, `REGULAR_EXPENSE`, etc.).
     - Agrupar ingresos por fuente (`PAYROLL`, `DEBT_COLLECTION`, etc.).
     - Calcular balances netos y métricas de nómina.
 
-- [ ] **TICKET-08.2: DTO de Respuesta de Métricas (`BudgetSummaryDto`)**
+- [x] **TICKET-08.2: DTO de Respuesta de Métricas (`BudgetSummaryDto`)**
   - Documentar en Swagger todos los campos devueltos: balances, remanente de nómina, desglose por categoría y deudores pendientes.
 
-- [ ] **TICKET-08.3: Integración de Endpoints en `BudgetsController`**
+- [x] **TICKET-08.3: Integración de Endpoints en `BudgetsController`**
   - `GET /api/budgets/:year/:month/summary`
   - `GET /api/budgets/current/summary`
 
-- [ ] **TICKET-08.4: Pruebas Unitarias de Cálculos Financieros**
+- [x] **TICKET-08.4: Pruebas Unitarias de Cálculos Financieros**
   - Caso de prueba:
     - Nómina: \$25,000.
     - Servicios: \$1,500 (Luz \$600, Internet \$650, Agua \$250).
