@@ -13,9 +13,9 @@ Gestionar el directorio de personas con quienes se comparten gastos o a quienes 
 > **Para** vincularlas con compras y llevar el control ordenado de cada una.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/people` para crear persona.
-- [ ] Endpoints para listar (`GET /api/people`), consultar (`GET /api/people/:id`), editar (`PATCH /api/people/:id`) y desactivar (`DELETE /api/people/:id`).
-- [ ] Filtrado estricto por `userId`.
+- [x] Endpoint `POST /api/people` para crear persona.
+- [x] Endpoints para listar (`GET /api/people`), consultar (`GET /api/people/:id`), editar (`PATCH /api/people/:id`) y desactivar (`DELETE /api/people/:id`).
+- [x] Filtrado estricto por `userId`.
 
 ---
 
@@ -25,13 +25,13 @@ Gestionar el directorio de personas con quienes se comparten gastos o a quienes 
 > **Para** saber exactamente cuánto cobrarle en total y por qué conceptos (MSI, servicios o gastos puntuales), junto con su fecha máxima de pago.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `GET /api/people/:id/debts`.
-- [ ] Desglosa la deuda en tres secciones:
+- [x] Endpoint `GET /api/people/:id/debts`.
+- [x] Desglosa la deuda en tres secciones:
   1. **Cuotas de MSI:** Compras a meses activas donde la persona tiene cuotas restantes, con el desglose de cuota actual y total restante.
   2. **Servicios y Suscripciones:** División de cargos recurrentes del mes activo no liquidados.
   3. **Compras Normales / Puntuales:** Gastos divididos pendientes de cobro.
-- [ ] Muestra el **Total Adeudado Global** y el **Monto por Pagar en el Periodo Inmediato**.
-- [ ] Muestra la **Fecha Límite Próxima de Pago** (heredada de la fecha de pago de la tarjeta bancaria correspondiente).
+- [x] Muestra el **Total Adeudado Global** y el **Monto por Pagar en el Periodo Inmediato**.
+- [x] Muestra la **Fecha Límite Próxima de Pago** (heredada de la fecha de pago de la tarjeta bancaria correspondiente).
 
 ---
 
@@ -41,32 +41,32 @@ Gestionar el directorio de personas con quienes se comparten gastos o a quienes 
 > **Para** actualizar su saldo pendiente y reflejar el cobro como recibido en mi flujo de ingresos.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/people/:id/settle`.
-- [ ] Permite marcar como pagada una cuota o gasto específico, o registrar un abono general.
-- [ ] Al liquidar, actualiza el estado del ingreso correspondiente en el mes presupuestario a `isReceived: true`.
+- [x] Endpoint `POST /api/people/:id/settle`.
+- [x] Permite marcar como pagada una cuota o gasto específico, o registrar un abono general.
+- [x] Al liquidar, actualiza el estado del ingreso correspondiente en el mes presupuestario a `isReceived: true`.
 
 ---
 
 ## 🛠️ Desglose de Tickets Técnicos
 
-- [ ] **TICKET-04.1: Esquema Mongoose `Person`**
+- [x] **TICKET-04.1: Esquema Mongoose `Person`**
   - Archivo `src/modules/people/schemas/person.schema.ts`.
-  - Campos: `userId`, `name`, `phone`, `email`, `notes`, `isActive`.
+  - Campos: `userId`, `name`, `phoneCode`, `phone`, `email`, `notes`, `isActive`.
   - Índices: `{ userId: 1, name: 1 }`.
 
-- [ ] **TICKET-04.2: DTOs de Personas y Liquidación**
+- [x] **TICKET-04.2: DTOs de Personas y Liquidación**
   - `create-person.dto.ts`, `update-person.dto.ts`, `settle-debt.dto.ts`.
 
-- [ ] **TICKET-04.3: Lógica de Agregación de Deudas en `PeopleService`**
+- [x] **TICKET-04.3: Lógica de Agregación de Deudas en `PeopleService`**
   - Query o pipeline de agregación que combina deudas de:
     - `RecurringTemplate` (tipo MSI con `personId` y cuotas restantes pendientes).
     - `Expense` (con `split.personId` y `split.isPaid: false`).
   - Cálculo de la fecha límite más próxima basándose en `AccountCard.paymentDueDay`.
 
-- [ ] **TICKET-04.4: Controlador `PeopleController`**
+- [x] **TICKET-04.4: Controlador `PeopleController`**
   - Implementar endpoints REST documentados en Swagger con sus modelos de respuesta tipados.
 
-- [ ] **TICKET-04.5: Pruebas Unitarias**
+- [x] **TICKET-04.5: Pruebas Unitarias**
   - Validar cálculo correcto de deuda agregada combinando MSI y gastos comunes.
 
 ---

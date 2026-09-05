@@ -13,7 +13,7 @@ El desarrollo se encuentra descompuesto en 9 features secuenciales e incremental
 | **01** | [Setup e Infraestructura](./features/01-setup-and-infrastructure/README.md) | Inicialización de NestJS, Mongoose, Swagger y Caddy. | ✅ Completada |
 | **02** | [Autenticación y Usuarios](./features/02-auth-and-users/README.md) | Multi-tenancy por `userId`, JWT (Access/Refresh), registro con Invite Code. | ✅ Completada |
 | **03** | [Cuentas y Tarjetas de Crédito](./features/03-cards-and-accounts/README.md) | Tarjetas con días de corte y pago; motor de fechas de flujo de caja. | ✅ Completada |
-| **04** | [Personas y Cuentas por Cobrar](./features/04-people-and-debts/README.md) | Directorio de deudores, agregación de deudas por persona y liquidación. | Pendiente |
+| **04** | [Personas y Cuentas por Cobrar](./features/04-people-and-debts/README.md) | Directorio de deudores, agregación de deudas por persona y liquidación. | ✅ Completada |
 | **05** | [Periodos Presupuestarios y Ahorro](./features/05-budget-periods-and-savings/README.md) | Ciclo de meses explícitos, clonación de plantillas y acarreo de ahorro editable. | Pendiente |
 | **06** | [Cargos Recurrentes y Motor de MSI](./features/06-recurring-and-msi/README.md) | Plantillas de servicios, suscripciones y compras a MSI con cuotas automáticas. | Pendiente |
 | **07** | [Transacciones, Gastos y Splits](./features/07-transactions-and-splits/README.md) | CRUD de ingresos y egresos, división de gastos con terceros e ingresos proyectados. | Pendiente |
