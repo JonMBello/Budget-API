@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CardsModule } from './modules/cards/cards.module';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
@@ -30,6 +31,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
     }),
     UsersModule,
     AuthModule,
+    CardsModule,
   ],
   controllers: [AppController],
   providers: [
