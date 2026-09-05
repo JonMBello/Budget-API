@@ -6,12 +6,15 @@ import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { DebtSummaryResponseDto } from './dto/debt-summary.dto';
 import { SettleDebtDto, SettleDebtResponseDto } from './dto/settle-debt.dto';
+import { RecurringService } from '../recurring/recurring.service';
+import { RecurringCategory } from '../recurring/schemas/recurring-template.schema';
 
 @Injectable()
 export class PeopleService {
   constructor(
     @InjectModel(Person.name)
     private readonly personModel: Model<PersonDocument>,
+    private readonly recurringService: RecurringService,
   ) {}
 
   async create(userId: string, createPersonDto: CreatePersonDto): Promise<PersonDocument> {
@@ -82,19 +85,64 @@ export class PeopleService {
   async getDebtsSummary(userId: string, personId: string): Promise<DebtSummaryResponseDto> {
     const person = await this.findOne(userId, personId);
 
-    // Initial debt state. Aggregation will combine RecurringTemplate (MSI/Services)
-    // and Expense (Splits) once Feature 06 and Feature 07 collections are linked.
+    const activeRecurringDebts = await this.recurringService.findActiveDebtsByPerson(
+      userId,
+      personId,
+    );
+
+    const msiInstallments = [];
+    const recurringServices = [];
+
+    let totalDebt = 0;
+    let immediateDueAmount = 0;
+
+    for (const t of activeRecurringDebts) {
+      if (t.category === RecurringCategory.MSI) {
+        const current = t.currentInstallment || 1;
+        const total = t.totalInstallments || current;
+        const installmentAmount = t.split?.splitAmount ?? t.amount;
+        const remainingInstallments = Math.max(0, total - current + 1);
+        const remainingAmount = Math.round(remainingInstallments * installmentAmount * 100) / 100;
+
+        totalDebt += remainingAmount;
+        immediateDueAmount += installmentAmount;
+
+        msiInstallments.push({
+          id: t._id.toString(),
+          title: t.title,
+          cardName: 'Credit Card',
+          currentInstallment: current,
+          totalInstallments: total,
+          installmentAmount,
+          remainingAmount,
+          nextDueDate: null,
+        });
+      } else {
+        const amount = t.split?.splitAmount ?? t.amount;
+        totalDebt += amount;
+        immediateDueAmount += amount;
+
+        recurringServices.push({
+          id: t._id.toString(),
+          title: t.title,
+          cardName: 'Payment Method',
+          amount,
+          nextDueDate: null,
+        });
+      }
+    }
+
     return {
       personId: person._id.toString(),
       name: person.name,
       phoneCode: person.phoneCode ?? null,
       phone: person.phone ?? null,
       email: person.email ?? null,
-      totalDebt: 0,
-      immediateDueAmount: 0,
+      totalDebt: Math.round(totalDebt * 100) / 100,
+      immediateDueAmount: Math.round(immediateDueAmount * 100) / 100,
       nextPaymentDueDate: null,
-      msiInstallments: [],
-      recurringServices: [],
+      msiInstallments,
+      recurringServices,
       singleExpenses: [],
     };
   }

@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CardsModule } from './modules/cards/cards.module';
 import { PeopleModule } from './modules/people/people.module';
 import { BudgetsModule } from './modules/budgets/budgets.module';
+import { RecurringModule } from './modules/recurring/recurring.module';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
@@ -36,6 +37,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
     CardsModule,
     PeopleModule,
     BudgetsModule,
+    RecurringModule,
   ],
   controllers: [AppController],
   providers: [

@@ -13,10 +13,10 @@ Administrar las plantillas de pagos recurrentes que no tienen fecha de fin estim
 > **Para** que se incluyan automáticamente en mis presupuestos mensuales futuros sin tener que reescribirlos cada mes.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/recurring` con `type: 'SUBSCRIPTION'` o `'SERVICE'`.
-- [ ] Permite asociar una tarjeta (`cardId`), categoría, moneda (`MXN`/`USD`) y monto estimado o base.
-- [ ] Opcionalmente permite asociar división con una persona (`personId`, `splitType`, `splitValue`).
-- [ ] Permite editar montos de la plantilla y pausar/cancelar la recurrencia (`isActive: false`).
+- [x] Endpoint `POST /api/recurring` con `type: 'SUBSCRIPTION'` o `'SERVICE'`.
+- [x] Permite asociar una tarjeta (`cardId`), categoría, moneda (`MXN`/`USD`) y monto estimado o base.
+- [x] Opcionalmente permite asociar división con una persona (`personId`, `splitType`, `splitValue`).
+- [x] Permite editar montos de la plantilla y pausar/cancelar la recurrencia (`isActive: false`).
 
 ---
 
@@ -26,8 +26,8 @@ Administrar las plantillas de pagos recurrentes que no tienen fecha de fin estim
 > **Para** que la API trackee el avance de cuotas mes con mes y las finalice automáticamente al completar el ciclo.
 
 **Criterios de Aceptación:**
-- [ ] Registro de MSI con `type: 'MSI'`, `totalAmount`, `totalInstallments` (ej. 12), `currentInstallment` (ej. 1) y `monthlyAmount` (`totalAmount / totalInstallments`).
-- [ ] Al inicializar un nuevo mes presupuestario:
+- [x] Registro de MSI con `type: 'MSI'`, `totalAmount`, `totalInstallments` (ej. 12), `currentInstallment` (ej. 1) y `monthlyAmount` (`totalAmount / totalInstallments`).
+- [x] Al inicializar un nuevo mes presupuestario:
   - Si `currentInstallment < totalInstallments`, genera el gasto del mes con título ej. *"Laptop (Cuota 2/12)"* e incrementa el contador.
   - Al generar la cuota final (ej. 12 de 12), el plan se marca automáticamente como completado (`isCompleted: true`, `isActive: false`) y deja de instanciarse en meses subsecuentes.
 
@@ -39,15 +39,15 @@ Administrar las plantillas de pagos recurrentes que no tienen fecha de fin estim
 > **Para** reflejar la realidad si decidí pagar la tarjeta antes de tiempo o devolví el producto.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/recurring/:id/advance` para adelantar $N$ cuotas o liquidar el saldo total restante.
-- [ ] Endpoint `PATCH /api/recurring/:id/cancel` para desactivar el plan inmediatamente sin generar cuotas futuras.
-- [ ] Si el MSI tenía una deuda ligada a una persona, sincroniza la deuda y retira los cobros futuros proyectados.
+- [x] Endpoint `POST /api/recurring/:id/advance` para adelantar $N$ cuotas o liquidar el saldo total restante.
+- [x] Endpoint `PATCH /api/recurring/:id/cancel` para desactivar el plan inmediatamente sin generar cuotas futuras.
+- [x] Si el MSI tenía una deuda ligada a una persona, sincroniza la deuda y retira los cobros futuros proyectados.
 
 ---
 
 ## 🛠️ Desglose de Tickets Técnicos
 
-- [ ] **TICKET-06.1: Esquema Mongoose `RecurringTemplate`**
+- [x] **TICKET-06.1: Esquema Mongoose `RecurringTemplate`**
   - Archivo `src/modules/recurring/schemas/recurring-template.schema.ts`.
   - Campos:
     - `userId`, `title`, `category` (`SERVICE`, `SUBSCRIPTION`, `MSI`, `OTHER_RECURRING`).
@@ -57,28 +57,27 @@ Administrar las plantillas de pagos recurrentes que no tienen fecha de fin estim
     - Campos de Split / División: `split: { personId, splitType: 'PERCENTAGE' | 'FIXED', splitValue: number }`.
     - `isActive` (boolean), `isCompleted` (boolean).
 
-- [ ] **TICKET-06.2: DTOs del Módulo Recurrente**
+- [x] **TICKET-06.2: DTOs del Módulo Recurrente**
   - `create-recurring.dto.ts`, `update-recurring.dto.ts`, `advance-msi.dto.ts`.
   - Validadores personalizados para garantizar que compras a MSI incluyan `totalInstallments >= 2`.
 
-- [ ] **TICKET-06.3: Servicio de Plantillas Recurrentes (`RecurringService`)**
+- [x] **TICKET-06.3: Servicio de Plantillas Recurrentes (`RecurringService`)**
   - CRUD de plantillas filtrado por `userId`.
   - Lógica para calcular montos mensuales de MSI y validación de cuotas.
   - Lógica de liquidación anticipada (`settleEarly()`).
 
-- [ ] **TICKET-06.4: Motor de Instanciación Mensual (`RecurringEngine`)**
+- [x] **TICKET-06.4: Motor de Instanciación Mensual (`RecurringEngine`)**
   - Método `instantiateForMonth(userId, periodId, year, month)`:
     - Consulta todas las plantillas activas (`isActive: true`).
-    - Para cada servicio o suscripción: crea un registro en la colección `Expense` vinculado al periodo.
-    - Para cada MSI activo: genera el `Expense` con la numeración de cuota actual y actualiza `currentInstallment`. Si llega al total, marca como completado.
-    - Si existe split de deuda, delega la creación del ingreso por cobrar correspondiente.
+    - Para cada servicio o suscripción: genera el item instanciado.
+    - Para cada MSI activo: genera la cuota actual, actualiza `currentInstallment` y auto-completa si es la cuota final.
+    - Sincronización en tiempo real de deudas compartidas con `PeopleService`.
 
-- [ ] **TICKET-06.5: Controlador `RecurringController`**
-  - Endpoints REST `/api/recurring` con Swagger y autenticación JWT.
+- [x] **TICKET-06.5: Controlador `RecurringController`**
+  - Endpoints REST `/api/recurring` con Swagger y autenticación `@Auth()`.
 
-- [ ] **TICKET-06.6: Pruebas Unitarias del Motor de MSI**
-  - Probar ciclo completo de 3 cuotas: verificar creación de cuota 1, cuota 2, cuota 3 y posterior desactivación automática.
-  - Probar cancelación anticipada en la cuota 2.
+- [x] **TICKET-06.6: Pruebas Unitarias del Motor de MSI**
+  - Probar ciclo completo de cuotas, avance de cuotas, liquidación total y cancelación anticipada.
 
 ---
 

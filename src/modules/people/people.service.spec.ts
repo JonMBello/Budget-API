@@ -4,6 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { PeopleService } from './people.service';
 import { Person } from './schemas/person.schema';
+import { RecurringService } from '../recurring/recurring.service';
 
 describe('PeopleService', () => {
   let service: PeopleService;
@@ -24,11 +25,17 @@ describe('PeopleService', () => {
     save: jest.fn(),
   };
 
+  let mockRecurringService: any;
+
   beforeEach(async () => {
     mockPersonModel = jest.fn().mockImplementation(() => mockPersonDoc);
     mockPersonModel.find = jest.fn();
     mockPersonModel.findOne = jest.fn();
     mockPersonModel.findByIdAndUpdate = jest.fn();
+
+    mockRecurringService = {
+      findActiveDebtsByPerson: jest.fn().mockResolvedValue([]),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -36,6 +43,10 @@ describe('PeopleService', () => {
         {
           provide: getModelToken(Person.name),
           useValue: mockPersonModel,
+        },
+        {
+          provide: RecurringService,
+          useValue: mockRecurringService,
         },
       ],
     }).compile();
@@ -196,6 +207,43 @@ describe('PeopleService', () => {
         recurringServices: [],
         singleExpenses: [],
       });
+    });
+
+    it('should aggregate active MSI plans and recurring services for the person', async () => {
+      mockPersonModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPersonDoc),
+      });
+
+      const mockMsi = {
+        _id: new Types.ObjectId('222222222222222222222222'),
+        title: 'PS5 (MSI)',
+        category: 'MSI',
+        currentInstallment: 2,
+        totalInstallments: 6,
+        amount: 1500,
+        split: { splitAmount: 750 },
+      };
+
+      const mockService = {
+        _id: new Types.ObjectId('333333333333333333333333'),
+        title: 'Netflix',
+        category: 'SUBSCRIPTION',
+        amount: 200,
+        split: { splitAmount: 100 },
+      };
+
+      mockRecurringService.findActiveDebtsByPerson.mockResolvedValue([mockMsi, mockService]);
+
+      const summary = await service.getDebtsSummary(mockUserId, mockPersonId);
+
+      // MSI remaining: (6 - 2 + 1) = 5 installments * 750 = 3750
+      // Service amount: 100
+      // Total debt: 3750 + 100 = 3850
+      // Immediate due: 750 + 100 = 850
+      expect(summary.totalDebt).toBe(3850);
+      expect(summary.immediateDueAmount).toBe(850);
+      expect(summary.msiInstallments).toHaveLength(1);
+      expect(summary.recurringServices).toHaveLength(1);
     });
   });
 
