@@ -13,9 +13,9 @@ Implementar un sistema híbrido de notificaciones (**Web Push** vía VAPID para 
 > **Para** recibir alertas directas en mi pantalla de bloqueo cuando se acerque una fecha de pago.
 
 **Criterios de Aceptación:**
-- [ ] Endpoint `POST /api/notifications/web-push/subscribe` que guarda el endpoint y llaves (`keys: { p256dh, auth }`) del navegador.
-- [ ] Generación y exposición de la clave pública VAPID en `GET /api/notifications/web-push/public-key`.
-- [ ] Permite registrar múltiples dispositivos por usuario (ej. iPad, iPhone y Mac).
+- [x] Endpoint `POST /api/notifications/web-push/subscribe` que guarda el endpoint y llaves (`keys: { p256dh, auth }`) del navegador.
+- [x] Generación y exposición de la clave pública VAPID en `GET /api/notifications/web-push/public-key`.
+- [x] Permite registrar múltiples dispositivos por usuario (ej. iPad, iPhone y Mac).
 
 ---
 
@@ -25,9 +25,9 @@ Implementar un sistema híbrido de notificaciones (**Web Push** vía VAPID para 
 > **Para** tener un respaldo claro en mi bandeja de entrada con el monto y fecha límite.
 
 **Criterios de Aceptación:**
-- [ ] Servicio de correo configurable vía SMTP o API de Resend mediante variables de entorno (`BUDGET_API_SMTP_HOST`, `BUDGET_API_SMTP_PORT`, `BUDGET_API_RESEND_API_KEY`, etc.).
-- [ ] Plantilla de correo HTML limpia con el detalle de cuentas por pagar y fechas de vencimiento.
-- [ ] Endpoint para disparar un correo de prueba `POST /api/notifications/test-email`.
+- [x] Servicio de correo configurable vía SMTP o API de Resend mediante variables de entorno (`BUDGET_API_SMTP_HOST`, `BUDGET_API_SMTP_PORT`, `BUDGET_API_RESEND_API_KEY`, etc.).
+- [x] Plantilla de correo HTML limpia con el detalle de cuentas por pagar y fechas de vencimiento.
+- [x] Endpoint para disparar un correo de prueba `POST /api/notifications/test` o `POST /api/notifications/test-email`.
 
 ---
 
@@ -37,44 +37,44 @@ Implementar un sistema híbrido de notificaciones (**Web Push** vía VAPID para 
 > **Para** no olvidar pagar ninguna tarjeta, factura de luz/internet o cobrar una deuda a tiempo.
 
 **Criterios de Aceptación:**
-- [ ] Cron programado con `@nestjs/schedule` que se ejecuta diariamente (ej. 08:00 AM).
-- [ ] Busca tarjetas cuyo `paymentDueDay` ocurra en $N$ días (configurable, ej. 3 días antes).
-- [ ] Busca servicios no pagados del mes con fecha de corte cercana.
-- [ ] Busca deudas de terceros con fecha de vencimiento próxima para recordarte cobrarles.
-- [ ] Registra en una colección `NotificationLog` para evitar enviar duplicados el mismo día.
+- [x] Cron programado con `@nestjs/schedule` que se ejecuta diariamente (ej. 08:00 AM).
+- [x] Busca tarjetas cuyo `paymentDueDay` ocurra en $N$ días (configurable, ej. 3 días antes).
+- [x] Busca servicios no pagados del mes con fecha de corte cercana.
+- [x] Busca deudas de terceros con fecha de vencimiento próxima para recordarte cobrarles.
+- [x] Registra en una colección `NotificationLog` para evitar enviar duplicados el mismo día.
 
 ---
 
 ## 🛠️ Desglose de Tickets Técnicos
 
-- [ ] **TICKET-09.1: Esquema Mongoose `WebPushSubscription` y `NotificationLog`**
+- [x] **TICKET-09.1: Esquema Mongoose `WebPushSubscription` y `NotificationLog`**
   - `src/modules/notifications/schemas/web-push-subscription.schema.ts`.
   - `src/modules/notifications/schemas/notification-log.schema.ts` (almacena `userId`, `targetType`, `targetId`, `channel`, `sentAt`).
 
-- [ ] **TICKET-09.2: Servicio de Web Push (`WebPushService`)**
+- [x] **TICKET-09.2: Servicio de Web Push (`WebPushService`)**
   - Integrar librería `web-push`.
   - Configurar claves VAPID (`BUDGET_API_VAPID_PUBLIC_KEY`, `BUDGET_API_VAPID_PRIVATE_KEY`, `BUDGET_API_VAPID_SUBJECT`).
   - Método `sendPushToUser(userId, payload)`.
 
-- [ ] **TICKET-09.3: Servicio de Correo Electrónico (`EmailService`)**
+- [x] **TICKET-09.3: Servicio de Correo Electrónico (`EmailService`)**
   - Integrar `nodemailer` o cliente de Resend.
   - Método `sendDueReminderEmail(user, duesList)`.
 
-- [ ] **TICKET-09.4: Cron de Vencimientos (`DueReminderScheduler`)**
+- [x] **TICKET-09.4: Cron de Vencimientos (`DueReminderScheduler`)**
   - Configurar `@nestjs/schedule` en `AppModule`.
   - Tarea `@Cron(CronExpression.EVERY_DAY_AT_8AM)` que analiza:
     - Tarjetas con fecha de pago en los próximos 3 días.
     - Servicios no marcados como `isPaid` con vencimiento cercano.
     - Ingresos de deudas `isReceived: false` con vencimiento cercano.
 
-- [ ] **TICKET-09.5: Controlador `NotificationsController`**
+- [x] **TICKET-09.5: Controlador `NotificationsController`**
   - Endpoints:
     - `GET /api/notifications/web-push/public-key`
     - `POST /api/notifications/web-push/subscribe`
     - `DELETE /api/notifications/web-push/unsubscribe`
     - `POST /api/notifications/test`
 
-- [ ] **TICKET-09.6: Pruebas Unitarias**
+- [x] **TICKET-09.6: Pruebas Unitarias**
   - Probar lógica de detección de fechas próximas y prevención de envíos duplicados mediante `NotificationLog`.
 
 ---

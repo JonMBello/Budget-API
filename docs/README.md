@@ -18,7 +18,7 @@ El desarrollo se encuentra descompuesto en 9 features secuenciales e incremental
 | **06** | [Cargos Recurrentes y Motor de MSI](./features/06-recurring-and-msi/README.md) | Plantillas de servicios, suscripciones y compras a MSI con cuotas automáticas. | ✅ Completada |
 | **07** | [Transacciones, Gastos y Splits](./features/07-transactions-and-splits/README.md) | CRUD de ingresos y egresos, división de gastos con terceros e ingresos proyectados. | ✅ Completada |
 | **08** | [Métricas y Remanente de Nómina](./features/08-metrics-and-cashflow/README.md) | Balance en tiempo real, remanente de nómina disponible para compras personales. | ✅ Completada |
-| **09** | [Notificaciones y Recordatorios](./features/09-notifications-and-reminders/README.md) | Web Push (VAPID) para PWA, email y cron diario de alertas de vencimiento. | Pendiente |
+| **09** | [Notificaciones y Recordatorios](./features/09-notifications-and-reminders/README.md) | Web Push (VAPID) para PWA, email y cron diario de alertas de vencimiento. | ✅ Completada |
 
 ---
 

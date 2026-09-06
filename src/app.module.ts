@@ -13,6 +13,8 @@ import { BudgetsModule } from './modules/budgets/budgets.module';
 import { RecurringModule } from './modules/recurring/recurring.module';
 import { IncomesModule } from './modules/incomes/incomes.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
@@ -27,6 +29,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
         abortEarly: false,
       },
     }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -42,6 +45,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
     RecurringModule,
     IncomesModule,
     ExpensesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [
