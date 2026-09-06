@@ -1,10 +1,10 @@
 {
   "name": "budget-api",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Budget API in NestJS with MongoDB",
   "author": "JonMBello",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
