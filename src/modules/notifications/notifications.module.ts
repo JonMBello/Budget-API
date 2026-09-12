@@ -14,6 +14,7 @@ import { EmailService } from './services/email.service';
 import { DueReminderScheduler } from './services/due-reminder-scheduler.service';
 import { NotificationsController } from './notifications.controller';
 import { UsersModule } from '../users/users.module';
+import { SystemConfigModule } from '../system-config/system-config.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UsersModule } from '../users/users.module';
       { name: Income.name, schema: IncomeSchema },
     ]),
     UsersModule,
+    SystemConfigModule,
   ],
   controllers: [NotificationsController],
   providers: [WebPushService, EmailService, DueReminderScheduler],

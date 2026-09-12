@@ -5,6 +5,7 @@ import { EmailService } from './services/email.service';
 import { DueReminderScheduler } from './services/due-reminder-scheduler.service';
 import { UsersService } from '../users/users.service';
 import { TestNotificationChannel } from './dto/test-notification.dto';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
@@ -12,6 +13,7 @@ describe('NotificationsController', () => {
   let mockEmailService: any;
   let mockDueReminderScheduler: any;
   let mockUsersService: any;
+  let mockSystemConfigService: any;
 
   const mockUserId = '654321654321654321654321';
 
@@ -45,6 +47,10 @@ describe('NotificationsController', () => {
       }),
     };
 
+    mockSystemConfigService = {
+      isNotificationsEnabled: jest.fn().mockResolvedValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationsController],
       providers: [
@@ -63,6 +69,10 @@ describe('NotificationsController', () => {
         {
           provide: UsersService,
           useValue: mockUsersService,
+        },
+        {
+          provide: SystemConfigService,
+          useValue: mockSystemConfigService,
         },
       ],
     }).compile();
@@ -123,6 +133,21 @@ describe('NotificationsController', () => {
         expect.any(String),
       );
       expect(result.success).toBe(true);
+    });
+
+    it('should NOT dispatch test notifications and should return success when notifications are disabled by system config', async () => {
+      mockSystemConfigService.isNotificationsEnabled.mockResolvedValue(false);
+
+      const result = await controller.sendTest(mockUserId, {
+        channel: TestNotificationChannel.ALL,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Notifications are disabled by system config');
+      expect(result.pushResult).toBeNull();
+      expect(result.emailResult).toBeNull();
+      expect(mockWebPushService.sendTestPush).not.toHaveBeenCalled();
+      expect(mockEmailService.sendTestEmail).not.toHaveBeenCalled();
     });
   });
 

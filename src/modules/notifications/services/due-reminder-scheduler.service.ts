@@ -16,6 +16,7 @@ import {
 import { WebPushService } from './web-push.service';
 import { DueItem, EmailService } from './email.service';
 import { AccountCardType } from '../../../common/utils/card-cycle.util';
+import { SystemConfigService } from '../../system-config/system-config.service';
 
 export interface UpcomingItem {
   targetType: NotificationTargetType;
@@ -44,10 +45,19 @@ export class DueReminderScheduler {
     private readonly logModel: Model<NotificationLogDocument>,
     private readonly webPushService: WebPushService,
     private readonly emailService: EmailService,
+    private readonly systemConfigService: SystemConfigService,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_8AM)
   async handleDailyReminders(): Promise<void> {
+    const isEnabled = await this.systemConfigService.isNotificationsEnabled();
+    if (!isEnabled) {
+      this.logger.log(
+        'Daily due reminder cron job skipped: notifications are disabled by system config (NOTIFICATIONS_ENABLED=false).',
+      );
+      return;
+    }
+
     this.logger.log('Starting daily due reminder cron job (08:00 AM)...');
 
     const users = await this.userModel.find({ isActive: true }).exec();
@@ -75,6 +85,21 @@ export class DueReminderScheduler {
       throw new Error('User not found');
     }
 
+    const isEnabled = await this.systemConfigService.isNotificationsEnabled();
+    if (!isEnabled) {
+      const upcomingItems = await this.detectUpcomingDues(userId);
+      this.logger.log(
+        `Manual due reminder check skipped notifications for user ${userId}: notifications disabled by system config (NOTIFICATIONS_ENABLED=false).`,
+      );
+      return {
+        success: true,
+        message: 'Notifications are disabled by system config',
+        detectedUpcomingCount: upcomingItems.length,
+        dispatchedAlertsCount: 0,
+        logs: [],
+      };
+    }
+
     const { detected, dispatched, logs } = await this.checkAndSendRemindersForUser(user);
 
     return {
@@ -94,6 +119,11 @@ export class DueReminderScheduler {
 
     if (upcomingItems.length === 0) {
       return { detected: 0, dispatched: 0, logs: [] };
+    }
+
+    const isEnabled = await this.systemConfigService.isNotificationsEnabled();
+    if (!isEnabled) {
+      return { detected: upcomingItems.length, dispatched: 0, logs: [] };
     }
 
     // Filter out items already notified today

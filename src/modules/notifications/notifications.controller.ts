@@ -13,6 +13,7 @@ import { TriggerRemindersResponseDto } from './dto/notification-response.dto';
 import { Auth } from '../../common/decorators/auth.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UsersService } from '../users/users.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @ApiTags('Notifications')
 @Auth()
@@ -23,6 +24,7 @@ export class NotificationsController {
     private readonly emailService: EmailService,
     private readonly dueReminderScheduler: DueReminderScheduler,
     private readonly usersService: UsersService,
+    private readonly systemConfigService: SystemConfigService,
   ) {}
 
   @Get('web-push/public-key')
@@ -84,6 +86,16 @@ export class NotificationsController {
     @CurrentUser('userId') userId: string,
     @Body() dto: TestNotificationDto,
   ): Promise<{ success: boolean; message: string; pushResult?: any; emailResult?: any }> {
+    const isEnabled = await this.systemConfigService.isNotificationsEnabled();
+    if (!isEnabled) {
+      return {
+        success: true,
+        message: 'Notifications are disabled',
+        pushResult: null,
+        emailResult: null,
+      };
+    }
+
     const channel = dto.channel || TestNotificationChannel.ALL;
     const title = dto.title || 'Budget-API Test Notification';
     const message = dto.message || 'Notifications are active and functioning correctly!';

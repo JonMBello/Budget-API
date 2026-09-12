@@ -10,6 +10,7 @@ import { NotificationLog } from '../schemas/notification-log.schema';
 import { WebPushService } from './web-push.service';
 import { EmailService } from './email.service';
 import { AccountCardType } from '../../../common/utils/card-cycle.util';
+import { SystemConfigService } from '../../system-config/system-config.service';
 
 describe('DueReminderScheduler', () => {
   let scheduler: DueReminderScheduler;
@@ -20,6 +21,7 @@ describe('DueReminderScheduler', () => {
   let mockLogModel: any;
   let mockWebPushService: any;
   let mockEmailService: any;
+  let mockSystemConfigService: any;
 
   const mockUserId = '654321654321654321654321';
   const mockCardId = '654321654321654321654322';
@@ -78,6 +80,10 @@ describe('DueReminderScheduler', () => {
       sendDueReminderEmail: jest.fn().mockResolvedValue({ success: true }),
     };
 
+    mockSystemConfigService = {
+      isNotificationsEnabled: jest.fn().mockResolvedValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DueReminderScheduler,
@@ -108,6 +114,10 @@ describe('DueReminderScheduler', () => {
         {
           provide: EmailService,
           useValue: mockEmailService,
+        },
+        {
+          provide: SystemConfigService,
+          useValue: mockSystemConfigService,
         },
       ],
     }).compile();
@@ -248,12 +258,47 @@ describe('DueReminderScheduler', () => {
       expect(mockEmailService.sendDueReminderEmail).toHaveBeenCalled();
       expect(mockLogModel).toHaveBeenCalled();
     });
+
+    it('should NOT dispatch alerts and should return 0 dispatched when notifications are disabled by system config', async () => {
+      mockSystemConfigService.isNotificationsEnabled.mockResolvedValue(false);
+
+      const now = new Date();
+      const targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getDate();
+
+      mockCardModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([
+          {
+            _id: new Types.ObjectId(mockCardId),
+            name: 'BBVA Platinum',
+            type: AccountCardType.CREDIT,
+            paymentDueDay: targetDay,
+          },
+        ]),
+      });
+
+      const result = await scheduler.runManualCheck(mockUserId);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Notifications are disabled by system config');
+      expect(result.detectedUpcomingCount).toBe(1);
+      expect(result.dispatchedAlertsCount).toBe(0);
+      expect(result.logs).toEqual([]);
+      expect(mockWebPushService.sendPushToUser).not.toHaveBeenCalled();
+      expect(mockEmailService.sendDueReminderEmail).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleDailyReminders', () => {
-    it('should execute daily cron check for all active users', async () => {
+    it('should execute daily cron check for all active users when notifications are enabled', async () => {
+      mockSystemConfigService.isNotificationsEnabled.mockResolvedValue(true);
       await scheduler.handleDailyReminders();
       expect(mockUserModel.find).toHaveBeenCalledWith({ isActive: true });
+    });
+
+    it('should skip daily cron check when notifications are disabled by system config', async () => {
+      mockSystemConfigService.isNotificationsEnabled.mockResolvedValue(false);
+      await scheduler.handleDailyReminders();
+      expect(mockUserModel.find).not.toHaveBeenCalled();
     });
   });
 });

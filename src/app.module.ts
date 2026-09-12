@@ -14,6 +14,7 @@ import { RecurringModule } from './modules/recurring/recurring.module';
 import { IncomesModule } from './modules/incomes/incomes.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { SystemConfigModule } from './modules/system-config/system-config.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -46,6 +47,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
     IncomesModule,
     ExpensesModule,
     NotificationsModule,
+    SystemConfigModule,
   ],
   controllers: [AppController],
   providers: [
