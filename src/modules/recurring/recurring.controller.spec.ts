@@ -43,7 +43,7 @@ describe('RecurringController', () => {
   const mockRecurringService = {
     create: jest.fn(),
     findAllByUser: jest.fn(),
-    instantiateForMonth: jest.fn(),
+    instantiateForPeriod: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
@@ -108,20 +108,25 @@ describe('RecurringController', () => {
   });
 
   describe('instantiate', () => {
-    it('should call service.instantiateForMonth and return results', async () => {
+    it('should call service.instantiateForPeriod and return results', async () => {
       const mockResult = {
+        periodId: '654321654321654321654320',
         year: 2026,
         month: 9,
-        totalCount: 1,
-        totalAmount: 219,
-        items: [],
+        createdCount: 3,
+        skippedCount: 1,
       };
-      mockRecurringService.instantiateForMonth.mockResolvedValue(mockResult);
+      mockRecurringService.instantiateForPeriod.mockResolvedValue(mockResult);
 
-      const result = await controller.instantiate(mockUserId, { year: 2026, month: 9 });
+      const result = await controller.instantiate(mockUserId, {
+        periodId: '654321654321654321654320',
+      });
 
       expect(result).toEqual(mockResult);
-      expect(service.instantiateForMonth).toHaveBeenCalledWith(mockUserId, 2026, 9);
+      expect(service.instantiateForPeriod).toHaveBeenCalledWith(
+        mockUserId,
+        '654321654321654321654320',
+      );
     });
   });
 

@@ -66,18 +66,30 @@ Administrar las plantillas de pagos recurrentes que no tienen fecha de fin estim
   - Lógica para calcular montos mensuales de MSI y validación de cuotas.
   - Lógica de liquidación anticipada (`settleEarly()`).
 
-- [x] **TICKET-06.4: Motor de Instanciación Mensual (`RecurringEngine`)**
-  - Método `instantiateForMonth(userId, periodId, year, month)`:
-    - Consulta todas las plantillas activas (`isActive: true`).
-    - Para cada servicio o suscripción: genera el item instanciado.
-    - Para cada MSI activo: genera la cuota actual, actualiza `currentInstallment` y auto-completa si es la cuota final.
-    - Sincronización en tiempo real de deudas compartidas con `PeopleService`.
+- [x] **TICKET-06.4: Motor de Instanciación en Periodos (`RecurringEngine`)**
+  - Endpoint `POST /api/recurring/instantiate`:
+    - Payload: `{ "periodId": "ID_DEL_PERIODO" }`
+    - Respuesta HTTP 200:
+      ```json
+      {
+        "periodId": "654321654321654321654320",
+        "year": 2026,
+        "month": 9,
+        "createdCount": 3,
+        "skippedCount": 2
+      }
+      ```
+    - Validaciones: 400 (ObjectId inválido), 404 (periodo inexistente o de otro usuario), 409 (periodo cerrado).
+    - Idempotencia: índice único parcial en `Expense` `{ periodId: 1, templateId: 1 }` (solo para gastos con `templateId`) y mutex en memoria por `userId:periodId`. Reintentos devuelven `createdCount: 0` y `skippedCount: N` sin duplicar gastos ni adelantar cuotas.
+    - Persistencia atómica de gastos reales (`Expense`), cobros vinculados (`Income` tipo `DEBT_COLLECTION`) y avance de cuotas MSI con soporte transaccional (y compensación automática si la base de datos es standalone).
+    - Ajuste de centavos en la cuota final de planes MSI.
+    - Prevención de re-avances accidentales de MSI si un gasto generado es eliminado del periodo.
 
 - [x] **TICKET-06.5: Controlador `RecurringController`**
   - Endpoints REST `/api/recurring` con Swagger y autenticación `@Auth()`.
 
-- [x] **TICKET-06.6: Pruebas Unitarias del Motor de MSI**
-  - Probar ciclo completo de cuotas, avance de cuotas, liquidación total y cancelación anticipada.
+- [x] **TICKET-06.6: Pruebas Unitarias del Motor de MSI y Recurrentes**
+  - Pruebas unitarias de creación de gastos, avance atómico de cuotas, ajuste de centavos, rechazo de periodos cerrados, idempotencia y rollback ante fallos.
 
 ---
 

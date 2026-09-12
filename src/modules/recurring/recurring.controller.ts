@@ -73,18 +73,21 @@ export class RecurringController {
 
   @Post('instantiate')
   @ApiOperation({
-    summary: 'Instantiate recurring charges and advance MSI installments for a given budget month',
+    summary: 'Instantiate recurring charges and advance MSI installments for an open budget period',
   })
   @ApiResponse({
     status: 200,
-    description: 'Generated recurring charges and advanced installments summary',
+    description: 'Instantiated recurring charges summary',
     type: InstantiateResultDto,
   })
+  @ApiResponse({ status: 400, description: 'Validation error or invalid period ID' })
+  @ApiResponse({ status: 404, description: 'Budget period not found' })
+  @ApiResponse({ status: 409, description: 'Cannot instantiate into a closed budget period' })
   async instantiate(
     @CurrentUser('userId') userId: string,
     @Body() dto: InstantiateRecurringDto,
   ): Promise<InstantiateResultDto> {
-    return this.recurringService.instantiateForMonth(userId, dto.year, dto.month);
+    return this.recurringService.instantiateForPeriod(userId, dto.periodId);
   }
 
   @Get(':id')

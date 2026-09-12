@@ -93,3 +93,11 @@ export const ExpenseSchema = SchemaFactory.createForClass(Expense);
 ExpenseSchema.index({ userId: 1, periodId: 1 });
 ExpenseSchema.index({ userId: 1, date: -1 });
 ExpenseSchema.index({ userId: 1, 'split.personId': 1 });
+// Partial unique index to ensure at most one expense per template in a given period
+ExpenseSchema.index(
+  { periodId: 1, templateId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { templateId: { $type: 'objectId' } },
+  },
+);

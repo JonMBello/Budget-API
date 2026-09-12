@@ -69,6 +69,12 @@ export class RecurringTemplate {
   @Prop({ type: Number, min: 1, default: null })
   currentInstallment?: number | null;
 
+  @Prop({ type: Number, default: null })
+  lastInstantiatedYear?: number | null;
+
+  @Prop({ type: Number, default: null })
+  lastInstantiatedMonth?: number | null;
+
   @Prop({ type: String, default: null })
   startDate?: string | null;
 

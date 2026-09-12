@@ -102,18 +102,18 @@ export class InstantiatedItemDto {
 }
 
 export class InstantiateResultDto {
+  @ApiProperty({ example: '654321654321654321654320' })
+  periodId: string;
+
   @ApiProperty({ example: 2026 })
   year: number;
 
   @ApiProperty({ example: 9 })
   month: number;
 
+  @ApiProperty({ example: 3 })
+  createdCount: number;
+
   @ApiProperty({ example: 2 })
-  totalCount: number;
-
-  @ApiProperty({ example: 2150 })
-  totalAmount: number;
-
-  @ApiProperty({ type: [InstantiatedItemDto] })
-  items: InstantiatedItemDto[];
+  skippedCount: number;
 }
