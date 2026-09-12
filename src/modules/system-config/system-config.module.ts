@@ -4,11 +4,7 @@ import { SystemConfig, SystemConfigSchema } from './schemas/system-config.schema
 import { SystemConfigService } from './system-config.service';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: SystemConfig.name, schema: SystemConfigSchema },
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: SystemConfig.name, schema: SystemConfigSchema }])],
   providers: [SystemConfigService],
   exports: [SystemConfigService],
 })

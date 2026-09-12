@@ -143,7 +143,7 @@ describe('NotificationsController', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.message).toBe('Notifications are disabled by system config');
+      expect(result.message).toBe('Notifications are disabled');
       expect(result.pushResult).toBeNull();
       expect(result.emailResult).toBeNull();
       expect(mockWebPushService.sendTestPush).not.toHaveBeenCalled();

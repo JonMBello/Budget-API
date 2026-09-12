@@ -37,7 +37,9 @@ export class SystemConfigService implements OnModuleInit {
         value: defaultValue,
         description,
       });
-      this.logger.log(`Seeded default system config: ${uppercaseKey} = ${JSON.stringify(defaultValue)}`);
+      this.logger.log(
+        `Seeded default system config: ${uppercaseKey} = ${JSON.stringify(defaultValue)}`,
+      );
     }
   }
 
@@ -74,11 +76,7 @@ export class SystemConfigService implements OnModuleInit {
     }
 
     return this.configModel
-      .findOneAndUpdate(
-        { key: uppercaseKey },
-        { $set: updateData },
-        { new: true, upsert: true },
-      )
+      .findOneAndUpdate({ key: uppercaseKey }, { $set: updateData }, { new: true, upsert: true })
       .exec();
   }
 }
