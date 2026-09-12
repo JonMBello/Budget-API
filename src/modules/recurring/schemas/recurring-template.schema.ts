@@ -33,7 +33,7 @@ export class SplitInfo {
 
 export const SplitInfoSchema = SchemaFactory.createForClass(SplitInfo);
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'recurring_templates' })
 export class RecurringTemplate {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;

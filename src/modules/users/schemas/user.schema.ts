@@ -8,7 +8,7 @@ export enum Currency {
   USD = 'USD',
 }
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'users' })
 export class User {
   @Prop({
     required: true,

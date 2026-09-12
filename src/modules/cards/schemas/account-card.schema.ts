@@ -4,7 +4,7 @@ import { AccountCardType } from '../../../common/utils/card-cycle.util';
 
 export type AccountCardDocument = AccountCard & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'account_cards' })
 export class AccountCard {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;

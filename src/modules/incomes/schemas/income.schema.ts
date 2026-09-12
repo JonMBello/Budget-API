@@ -11,7 +11,7 @@ export enum IncomeSource {
   OTHER = 'OTHER',
 }
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'incomes' })
 export class Income {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;

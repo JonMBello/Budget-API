@@ -41,7 +41,7 @@ export class ExpenseSplit {
 
 export const ExpenseSplitSchema = SchemaFactory.createForClass(ExpenseSplit);
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'expenses' })
 export class Expense {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;

@@ -12,7 +12,7 @@ export class WebPushKeys {
   auth: string;
 }
 
-@Schema({ timestamps: true, collection: 'webpushsubscriptions' })
+@Schema({ timestamps: true, collection: 'web_push_subscriptions' })
 export class WebPushSubscription {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;

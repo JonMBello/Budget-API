@@ -8,7 +8,7 @@ export enum BudgetPeriodStatus {
   CLOSED = 'CLOSED',
 }
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'budget_periods' })
 export class BudgetPeriod {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;

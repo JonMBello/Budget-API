@@ -20,7 +20,7 @@ export enum NotificationStatus {
   FAILED = 'FAILED',
 }
 
-@Schema({ timestamps: true, collection: 'notificationlogs' })
+@Schema({ timestamps: true, collection: 'notification_logs' })
 export class NotificationLog {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;
