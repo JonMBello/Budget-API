@@ -5,10 +5,12 @@ import { Person, PersonDocument } from './schemas/person.schema';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { DebtSummaryResponseDto } from './dto/debt-summary.dto';
+import { DebtSummaryV2ResponseDto, PeriodDebtsDto } from './dto/debt-summary-v2.dto';
 import { SettleDebtDto, SettleDebtResponseDto } from './dto/settle-debt.dto';
 import { RecurringService } from '../recurring/recurring.service';
 import { RecurringCategory } from '../recurring/schemas/recurring-template.schema';
 import { ExpensesService } from '../expenses/expenses.service';
+import { ExpenseCategory } from '../expenses/schemas/expense.schema';
 
 @Injectable()
 export class PeopleService {
@@ -181,6 +183,236 @@ export class PeopleService {
       msiInstallments,
       recurringServices,
       singleExpenses,
+    };
+  }
+
+  async getDebtsSummaryV2(userId: string, personId: string): Promise<DebtSummaryV2ResponseDto> {
+    const person = await this.findOne(userId, personId);
+
+    const pendingExpenses = await this.expensesService.findPendingDebtsByPerson(userId, personId);
+    const activeRecurringDebts = await this.recurringService.findActiveDebtsByPerson(
+      userId,
+      personId,
+    );
+
+    const periodsMap = new Map<string, PeriodDebtsDto>();
+
+    const getOrCreatePeriod = (
+      periodKey: string,
+      year: number,
+      month: number,
+      periodId: string | null = null,
+    ): PeriodDebtsDto => {
+      let p = periodsMap.get(periodKey);
+      if (!p) {
+        const monthNames = [
+          'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+        ];
+        p = {
+          period: periodKey,
+          year,
+          month,
+          periodName: `${monthNames[month - 1] ?? `Mes ${month}`} ${year}`,
+          periodId: periodId ?? null,
+          totalDebt: 0,
+          msiInstallments: [],
+          recurringServices: [],
+          singleExpenses: [],
+        };
+        periodsMap.set(periodKey, p);
+      } else if (!p.periodId && periodId) {
+        p.periodId = periodId;
+      }
+      return p;
+    };
+
+    const parseDateStr = (dateVal: any): string => {
+      if (!dateVal) return '';
+      if (typeof dateVal === 'string') {
+        return dateVal.split('T')[0];
+      }
+      if (dateVal instanceof Date) {
+        return dateVal.toISOString().split('T')[0];
+      }
+      return String(dateVal).split('T')[0];
+    };
+
+    // Track which template + period pairs are already covered by real recorded expenses
+    const instantiatedTemplatePeriods = new Set<string>();
+
+    for (const exp of pendingExpenses) {
+      const amount = exp.split?.splitAmount ?? exp.amount;
+      const cardName = (exp.cardId as any)?.name ?? 'Sin tarjeta';
+      const dueDateStr = exp.paymentDueDate
+        ? parseDateStr(exp.paymentDueDate)
+        : null;
+      const dateStr = parseDateStr(exp.date);
+
+      let year: number;
+      let month: number;
+      if (dateStr && dateStr.includes('-')) {
+        const [y, m] = dateStr.split('-');
+        year = parseInt(y, 10);
+        month = parseInt(m, 10);
+      } else {
+        const now = new Date();
+        year = now.getFullYear();
+        month = now.getMonth() + 1;
+      }
+
+      const periodKey = `${year}-${String(month).padStart(2, '0')}`;
+      const periodId = exp.periodId ? exp.periodId.toString() : null;
+      const periodObj = getOrCreatePeriod(periodKey, year, month, periodId);
+
+      const templateIdStr = exp.templateId ? exp.templateId.toString() : null;
+      if (templateIdStr) {
+        instantiatedTemplatePeriods.add(`${templateIdStr}:${periodKey}`);
+      }
+
+      if (exp.category === ExpenseCategory.MSI) {
+        let currentInstallment = 1;
+        let totalInstallments = 1;
+        const match = exp.title.match(/cuota\s+(\d+)\/(\d+)/i);
+        if (match) {
+          currentInstallment = parseInt(match[1], 10);
+          totalInstallments = parseInt(match[2], 10);
+        }
+
+        periodObj.msiInstallments.push({
+          id: exp._id.toString(),
+          title: exp.title,
+          cardName,
+          currentInstallment,
+          totalInstallments,
+          installmentAmount: amount,
+          remainingAmount: amount,
+          nextDueDate: dueDateStr,
+        });
+      } else if (
+        exp.category === ExpenseCategory.SERVICE ||
+        exp.category === ExpenseCategory.SUBSCRIPTION
+      ) {
+        periodObj.recurringServices.push({
+          id: exp._id.toString(),
+          title: exp.title,
+          cardName,
+          amount,
+          nextDueDate: dueDateStr,
+        });
+      } else {
+        periodObj.singleExpenses.push({
+          id: exp._id.toString(),
+          title: exp.title,
+          cardName,
+          amount,
+          date: dateStr,
+          paymentDueDate: dueDateStr,
+          isPaid: !(exp.split?.isDebtActive ?? true),
+        });
+      }
+    }
+
+    // Process active recurring templates (informational future projections without DB modification)
+    for (const t of activeRecurringDebts) {
+      const tId = t._id.toString();
+
+      if (t.category === RecurringCategory.MSI) {
+        const current = t.currentInstallment || 1;
+        const total = t.totalInstallments || current;
+        const installmentAmount = t.split?.splitAmount ?? t.amount;
+
+        let startYear: number;
+        let startMonth: number;
+
+        if (t.lastInstantiatedYear != null && t.lastInstantiatedMonth != null) {
+          startYear = t.lastInstantiatedYear;
+          startMonth = t.lastInstantiatedMonth + 1;
+          if (startMonth > 12) {
+            startYear += 1;
+            startMonth = 1;
+          }
+        } else if (t.startDate) {
+          const dateOnly = parseDateStr(t.startDate);
+          const [sY, sM] = dateOnly.split('-');
+          startYear = parseInt(sY, 10);
+          startMonth = parseInt(sM, 10);
+        } else {
+          const now = new Date();
+          startYear = now.getFullYear();
+          startMonth = now.getMonth() + 1;
+        }
+
+        let projYear = startYear;
+        let projMonth = startMonth;
+
+        for (let inst = current; inst <= total; inst++) {
+          const periodKey = `${projYear}-${String(projMonth).padStart(2, '0')}`;
+
+          if (!instantiatedTemplatePeriods.has(`${tId}:${periodKey}`)) {
+            const periodObj = getOrCreatePeriod(periodKey, projYear, projMonth, null);
+            periodObj.msiInstallments.push({
+              id: `${tId}-${inst}`,
+              title: `${t.title} (Cuota ${inst}/${total})`,
+              cardName: 'Credit Card',
+              currentInstallment: inst,
+              totalInstallments: total,
+              installmentAmount,
+              remainingAmount: installmentAmount,
+              nextDueDate: null,
+            });
+          }
+
+          projMonth++;
+          if (projMonth > 12) {
+            projYear++;
+            projMonth = 1;
+          }
+        }
+      } else {
+        const now = new Date();
+        const curYear = now.getFullYear();
+        const curMonth = now.getMonth() + 1;
+        const curPeriodKey = `${curYear}-${String(curMonth).padStart(2, '0')}`;
+
+        if (!instantiatedTemplatePeriods.has(`${tId}:${curPeriodKey}`)) {
+          const amount = t.split?.splitAmount ?? t.amount;
+          const periodObj = getOrCreatePeriod(curPeriodKey, curYear, curMonth, null);
+          periodObj.recurringServices.push({
+            id: tId,
+            title: t.title,
+            cardName: 'Payment Method',
+            amount,
+            nextDueDate: null,
+          });
+        }
+      }
+    }
+
+    const periods = Array.from(periodsMap.values());
+    periods.sort((a, b) => a.period.localeCompare(b.period));
+
+    let grandTotalDebt = 0;
+
+    for (const p of periods) {
+      const msiSum = p.msiInstallments.reduce((acc, item) => acc + item.installmentAmount, 0);
+      const recSum = p.recurringServices.reduce((acc, item) => acc + item.amount, 0);
+      const singleSum = p.singleExpenses.reduce((acc, item) => acc + item.amount, 0);
+
+      p.totalDebt = Math.round((msiSum + recSum + singleSum) * 100) / 100;
+      grandTotalDebt += p.totalDebt;
+    }
+
+    grandTotalDebt = Math.round(grandTotalDebt * 100) / 100;
+
+    return {
+      personId: person._id.toString(),
+      name: person.name,
+      phoneCode: person.phoneCode ?? null,
+      phone: person.phone ?? null,
+      email: person.email ?? null,
+      totalDebt: grandTotalDebt,
+      periods,
     };
   }
 

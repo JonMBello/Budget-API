@@ -295,6 +295,182 @@ describe('PeopleService', () => {
     });
   });
 
+  describe('getDebtsSummaryV2', () => {
+    it('should return empty periods and $0 totalDebt when person has no debts', async () => {
+      mockPersonModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPersonDoc),
+      });
+      mockExpensesService.findPendingDebtsByPerson.mockResolvedValue([]);
+      mockRecurringService.findActiveDebtsByPerson.mockResolvedValue([]);
+
+      const result = await service.getDebtsSummaryV2(mockUserId, mockPersonId);
+
+      expect(result).toEqual({
+        personId: mockPersonId,
+        name: 'Juan Pérez',
+        phoneCode: '+52',
+        phone: '8181234567',
+        email: 'juan.perez@example.com',
+        totalDebt: 0,
+        periods: [],
+      });
+    });
+
+    it('should separate pending debts from September and October into distinct periods with their own breakdown', async () => {
+      mockPersonModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPersonDoc),
+      });
+
+      const septPeriodId = '555555555555555555555551';
+      const octPeriodId = '555555555555555555555552';
+
+      const septExpense = {
+        _id: new Types.ObjectId('444444444444444444444441'),
+        title: 'Septiembre Dinner',
+        amount: 600,
+        category: 'FOOD',
+        date: '2026-09-15',
+        paymentDueDate: '2026-10-05',
+        cardId: { name: 'BBVA Platinum' },
+        periodId: new Types.ObjectId(septPeriodId),
+        split: { splitAmount: 300, isDebtActive: true },
+      };
+
+      const octExpense = {
+        _id: new Types.ObjectId('444444444444444444444442'),
+        title: 'Octubre Concert Ticket',
+        amount: 1000,
+        category: 'ENTERTAINMENT',
+        date: '2026-10-12',
+        paymentDueDate: '2026-11-05',
+        cardId: { name: 'Santander LikeU' },
+        periodId: new Types.ObjectId(octPeriodId),
+        split: { splitAmount: 500, isDebtActive: true },
+      };
+
+      mockExpensesService.findPendingDebtsByPerson.mockResolvedValue([septExpense, octExpense]);
+      mockRecurringService.findActiveDebtsByPerson.mockResolvedValue([]);
+
+      const result = await service.getDebtsSummaryV2(mockUserId, mockPersonId);
+
+      expect(result.totalDebt).toBe(800);
+      expect(result.periods).toHaveLength(2);
+
+      expect(result.periods[0]).toEqual({
+        period: '2026-09',
+        year: 2026,
+        month: 9,
+        periodName: 'Septiembre 2026',
+        periodId: septPeriodId,
+        totalDebt: 300,
+        msiInstallments: [],
+        recurringServices: [],
+        singleExpenses: [
+          {
+            id: '444444444444444444444441',
+            title: 'Septiembre Dinner',
+            cardName: 'BBVA Platinum',
+            amount: 300,
+            date: '2026-09-15',
+            paymentDueDate: '2026-10-05',
+            isPaid: false,
+          },
+        ],
+      });
+
+      expect(result.periods[1]).toEqual({
+        period: '2026-10',
+        year: 2026,
+        month: 10,
+        periodName: 'Octubre 2026',
+        periodId: octPeriodId,
+        totalDebt: 500,
+        msiInstallments: [],
+        recurringServices: [],
+        singleExpenses: [
+          {
+            id: '444444444444444444444442',
+            title: 'Octubre Concert Ticket',
+            cardName: 'Santander LikeU',
+            amount: 500,
+            date: '2026-10-12',
+            paymentDueDate: '2026-11-05',
+            isPaid: false,
+          },
+        ],
+      });
+    });
+
+    it('should project future MSI installments informatively without duplicating already instantiated cuotas', async () => {
+      mockPersonModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPersonDoc),
+      });
+
+      const msiTemplateId = '222222222222222222222222';
+
+      // September already has an instantiated expense for Cuota 1
+      const septMsiExpense = {
+        _id: new Types.ObjectId('444444444444444444444443'),
+        templateId: new Types.ObjectId(msiTemplateId),
+        title: 'MacBook Air M2 (Cuota 1/3)',
+        category: 'MSI',
+        amount: 3000,
+        date: '2026-09-01',
+        paymentDueDate: '2026-10-05',
+        cardId: { name: 'BBVA Platinum' },
+        periodId: new Types.ObjectId('555555555555555555555551'),
+        split: { splitAmount: 1500, isDebtActive: true },
+      };
+
+      // Template is on installment 2 of 3, last instantiated in 2026-09
+      const msiTemplate = {
+        _id: new Types.ObjectId(msiTemplateId),
+        title: 'MacBook Air M2',
+        category: 'MSI',
+        currentInstallment: 2,
+        totalInstallments: 3,
+        amount: 3000,
+        lastInstantiatedYear: 2026,
+        lastInstantiatedMonth: 9,
+        split: { splitAmount: 1500 },
+      };
+
+      mockExpensesService.findPendingDebtsByPerson.mockResolvedValue([septMsiExpense]);
+      mockRecurringService.findActiveDebtsByPerson.mockResolvedValue([msiTemplate]);
+
+      const result = await service.getDebtsSummaryV2(mockUserId, mockPersonId);
+
+      // Sept has instantiated cuota 1 ($1500)
+      // Oct projects cuota 2 ($1500)
+      // Nov projects cuota 3 ($1500)
+      // Total debt = 4500
+      expect(result.totalDebt).toBe(4500);
+      expect(result.periods).toHaveLength(3);
+
+      expect(result.periods[0].period).toBe('2026-09');
+      expect(result.periods[0].totalDebt).toBe(1500);
+      expect(result.periods[0].msiInstallments).toHaveLength(1);
+      expect(result.periods[0].msiInstallments[0].currentInstallment).toBe(1);
+
+      expect(result.periods[1].period).toBe('2026-10');
+      expect(result.periods[1].totalDebt).toBe(1500);
+      expect(result.periods[1].msiInstallments).toHaveLength(1);
+      expect(result.periods[1].msiInstallments[0].currentInstallment).toBe(2);
+      expect(result.periods[1].periodId).toBeNull(); // informative projection
+
+      expect(result.periods[2].period).toBe('2026-11');
+      expect(result.periods[2].totalDebt).toBe(1500);
+      expect(result.periods[2].msiInstallments).toHaveLength(1);
+      expect(result.periods[2].msiInstallments[0].currentInstallment).toBe(3);
+    });
+
+    it('should throw NotFoundException if personId is invalid or person not found', async () => {
+      await expect(service.getDebtsSummaryV2(mockUserId, 'invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
   describe('settleDebt', () => {
     it('should return a settlement confirmation for an existing person', async () => {
       mockPersonModel.findOne.mockReturnValue({

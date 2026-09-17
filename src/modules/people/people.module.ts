@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Person, PersonSchema } from './schemas/person.schema';
 import { PeopleService } from './people.service';
 import { PeopleController } from './people.controller';
+import { PeopleV2Controller } from './people-v2.controller';
 import { RecurringModule } from '../recurring/recurring.module';
 import { ExpensesModule } from '../expenses/expenses.module';
 
@@ -17,7 +18,7 @@ import { ExpensesModule } from '../expenses/expenses.module';
     RecurringModule,
     ExpensesModule,
   ],
-  controllers: [PeopleController],
+  controllers: [PeopleController, PeopleV2Controller],
   providers: [PeopleService],
   exports: [PeopleService],
 })

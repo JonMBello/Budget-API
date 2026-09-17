@@ -105,10 +105,13 @@ export class PeopleController {
   @ApiOperation({
     summary:
       'Get aggregated debt summary for a person (MSI, recurring services, and single expenses)',
+    deprecated: true,
+    description:
+      'DEPRECATED: Use GET /api/v2/people/:id/debts for debt summary and breakdown grouped by budget period.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Aggregated debt summary and breakdown',
+    description: 'Aggregated debt summary and breakdown (Deprecated - Use v2)',
     type: DebtSummaryResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Person not found' })
